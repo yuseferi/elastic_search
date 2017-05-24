@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\elastic_search\Kernel\Plugin\FieldMapper;
 
-use Drupal\Tests\token\Kernel\KernelTestBase;
+use Drupal\KernelTests\KernelTestBase;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
 /**

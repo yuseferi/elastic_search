@@ -10,7 +10,7 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\elastic_search\Elastic\ElasticIndexGenerator;
 use Drupal\elastic_search\Entity\ElasticIndex;
 use Drupal\elastic_search\Entity\FieldableEntityMapInterface;
-use Drupal\Tests\token\Kernel\KernelTestBase;
+use Drupal\KernelTests\KernelTestBase;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
 /**
