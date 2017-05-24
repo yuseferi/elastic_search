@@ -1,0 +1,16 @@
+auth:
+  password: ''
+  username: ''
+scheme: 'https'
+host: ''
+port: ''
+kibana: ''
+index_prefix: ''
+advanced:
+  active: 0
+  developer:
+    active: 0
+    logging_channel: elastic.logger
+  validate:
+    active: 0
+    die_hard: 0

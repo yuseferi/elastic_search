@@ -1,0 +1,251 @@
+<?php
+
+/**
+ * @file
+ * Contains elastic_search.module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\elastic_search\Exception\ElasticDocumentBuilderSkipException;
+use Drupal\elastic_search\Utility\ElasticTokenHelper;
+
+/**
+ * Implements hook_help().
+ */
+function elastic_search_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the elastic_search module.
+    case 'help.page.elastic_search':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Elastic search implementation for drupal 8') .
+                 '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Add a link template to each entity type
+ * So we can use a Derivative plugin to add tabs to their edit fields
+ *
+ * Implements hook_entity_type_alter().
+ */
+function elastic_search_entity_type_alter(array &$entity_types) {
+  foreach ($entity_types as $entity_type_id => $entity_type) {
+    if (_elastic_search_is_internal_type($entity_type_id)) {
+      $entity_type->setLinkTemplate('elastic-mapping-admin',
+                                    "/admin/config/search/elastic/fem/{$entity_type_id}__{{$entity_type_id}}/edit");
+      continue;
+    }
+    $entity_type->setLinkTemplate('elastic-mapping-add',
+                                  "/admin/config/search/elastic/fem/$entity_type_id/{{$entity_type_id}}");
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update().
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ */
+function elastic_search_fieldable_entity_map_update(EntityInterface $entity) {
+  $manager = \Drupal::getContainer()->get('elastic_search.indices.manager');
+  $manager->markIndexForServerUpdateFromFieldMap($entity);
+  //TODO - add some kind of message if it fails
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert().
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ */
+function elastic_search_fieldable_entity_map_insert(EntityInterface $entity) {
+  $manager = \Drupal::getContainer()->get('elastic_search.indices.manager');
+  $manager->markIndexForServerUpdateFromFieldMap($entity);
+}
+
+//TODO - ALL CRUD HOOKS BELOW MUST SHOULD FAILURES TO A QUEUE
+/**
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ *
+ * @return bool
+ */
+function _elastic_search_type_skip(EntityInterface $entity) {
+  $type = $entity->getEntityTypeId();
+  return !_elastic_search_is_internal_type($type);
+
+}
+
+/**
+ * True is the type is to do with elastic, and therefore should never be indexed
+ *
+ * @param string $type
+ *
+ * @return bool
+ */
+function _elastic_search_is_internal_type(string $type) {
+  return ($type === 'elastic_analyzer' || $type === 'fieldable_entity_map' || $type === 'elastic_index');
+}
+
+/**
+ * Implements hook_entity_insert().
+ *
+ * This does no checking for back references since it stands to reason that a newly created entity should not already
+ * be referenced
+ * (migration situations can complicate this, YMMV)
+ */
+function elastic_search_entity_insert(EntityInterface $entity) {
+
+  if (!_elastic_search_type_skip($entity)) {
+    return;
+  }
+
+  $documentManager = \Drupal::getContainer()
+                            ->get('elastic_search.document.manager');
+  try {
+    $payloads = $documentManager->buildMappingPayload($entity);
+    $documentManager->sendDocuments($payloads);
+    \Drupal::logger('elastic.mapping.document')
+           ->info('Inserted document @id', ['@id' => $entity->id()]);
+  } catch (ElasticDocumentBuilderSkipException $e) {
+    \Drupal::logger('elastic.mapping.document')
+           ->notice('Skipped inserting document: ' .
+                    json_encode($e->getMessage()));
+  } catch (\Exception $e) {
+    \Drupal::logger('elastic.mapping.document')
+           ->critical('Could not insert document: ' .
+                      json_encode($e->getMessage()));
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * Deals with recursion of items to stop circular flattening actions
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ * @param array                               $entityList
+ *
+ * @internal param int $currentDepth
+ * @internal param int $maxDepth
+ */
+function elastic_search_entity_update(EntityInterface $entity) {
+
+  if (!_elastic_search_type_skip($entity)) {
+    return;
+  }
+
+  _elastic_search_entity_update($entity, []);
+
+}
+
+function _elastic_search_entity_update(EntityInterface $entity, array $entityList = []) {
+
+  if (in_array($entity->uuid(), $entityList, FALSE)) {
+    //stop circular updates
+    return;
+  }
+
+  $entityList[] = $entity->uuid();
+
+  try {
+    $documentManager = \Drupal::getContainer()
+                              ->get('elastic_search.document.manager');
+    $payloads = $documentManager->buildMappingPayload($entity);
+    $documentManager->sendDocuments($payloads);
+    \Drupal::logger('elastic.mapping.document')
+           ->info('Updated document @id', ['@id' => $entity->id()]);
+
+    //Process backreferences
+    _elastic_search_update_backreferences($entity, $entityList);
+  } catch (ElasticDocumentBuilderSkipException $e) {
+    \Drupal::logger('elastic.mapping.document')
+           ->notice('Skipped inserting document: ' .
+                    json_encode($e->getMessage()));
+  } catch (\Exception $e) {
+    \Drupal::logger('elastic.mapping.document')
+           ->critical('Could not insert document: ' .
+                      json_encode($e->getMessage()));
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function elastic_search_entity_delete(EntityInterface $entity) {
+
+  if (!_elastic_search_type_skip($entity)) {
+    return;
+  }
+
+  $entityList[] = $entity->uuid();
+
+  $documentManager = \Drupal::getContainer()
+                            ->get('elastic_search.document.manager');
+  try {
+    $documentManager->deleteEntity($entity);
+    \Drupal::logger('elastic.mapping.document')
+           ->info('Deleted document @id', ['@id' => $entity->id()]);
+    _elastic_search_update_backreferences($entity, $entityList);
+  } catch (\Exception $e) {
+    \Drupal::logger('elastic.mapping.document')
+           ->warning('Could not delete document: ' .
+                     json_encode($e->getMessage()));
+  }
+}
+
+function _elastic_search_update_backreferences(EntityInterface $entity, array &$entityList) {
+  $br = \Drupal::getContainer()->get('elastic_search.backreference_processor');
+  /** @var \Drupal\field\Entity\FieldConfig[] $rfs */
+  $rfs = $br->referencingFields($entity->getEntityTypeId(), $entity->bundle());
+  foreach ($rfs as $rf) {
+    $refEnts = $br->loadReferencingEntities($rf, $entity->id());
+    /** @var Drupal\Core\Entity\EntityInterface $refEnt */
+    foreach ($refEnts as $refEnt) {
+      //Make sure we have the correct translation
+      try {
+        $translation = $refEnt->getTranslation($entity->language()->getId());
+      } catch (\Throwable $t) {
+        $translation = $refEnt;
+      }
+      _elastic_search_entity_update($translation, $entityList);//Call update on the referenced node
+    }
+  }
+}
+
+
+/**
+ * Implements hook_token_info().
+ */
+function elastic_search_token_info() {
+  return ElasticTokenHelper::getTokenInfo(\Drupal::getContainer()
+                                                 ->get('string_translation'));
+}
+
+/**
+ * Implements hook_tokens().
+ *
+ * @param string                                 $type
+ * @param array                                  $tokens
+ * @param array                                  $data
+ * @param array                                  $options
+ * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+ *
+ * @return array
+ */
+function elastic_search_tokens(string $type,
+                               array $tokens,
+                               array $data,
+                               array $options,
+                               BubbleableMetadata $bubbleable_metadata) {
+
+  return ElasticTokenHelper::doTokenReplacement($type,
+                                                $tokens,
+                                                $data,
+                                                $options,
+                                                $bubbleable_metadata);
+}
+

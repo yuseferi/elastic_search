@@ -1,0 +1,62 @@
+# Actions add items to administrative lists etc....
+
+#entity.fieldable_entity_map.edit_form:
+#  route_name: 'entity.fieldable_entity_map.edit_form'
+#  title: 'Add/Edit Fieldable entity map'
+#  appears_on:
+#    - entity.fieldable_entity_map.collection
+entity.elastic_mapping.build_maps:
+  route_name: 'elastic_search.controller.mapping.build'
+  title: 'Test Map Dsl Generation'
+  appears_on:
+    - entity.fieldable_entity_map.collection
+
+entity.elastic_mapping.generator:
+  route_name: 'elastic_search.fem.generator'
+  title: 'Map Generator'
+  appears_on:
+    - entity.fieldable_entity_map.collection
+
+entity.elastic_mapping.delete_maps:
+  route_name: 'elastic_search.controller.mapping.delete'
+  title: 'Delete All Maps'
+  appears_on:
+    - entity.fieldable_entity_map.collection
+
+entity.elastic_index.generate_indices:
+  route_name: 'elastic_search.controller.indices.generate'
+  title: 'Generate Elastic Indices'
+  appears_on:
+    - entity.elastic_index.collection
+
+entity.elastic_index.update_indices:
+  route_name: 'elastic_search.controller.indices.update'
+  title: 'Update Server Mappings'
+  appears_on:
+    - entity.elastic_index.collection
+    - elastic_search.controller.indices.generate
+    - elastic_search.controller.indices.update
+
+elastic.elastic_index.document_update_all:
+  route_name: 'elastic_search.controller.indices.documents.update'
+  title: 'Index All Documents'
+  appears_on:
+    - entity.elastic_index.collection
+
+elastic.elastic_index.clear_index_all:
+  route_name: 'elastic_search.controller.indices.clear'
+  title: 'Clear All Documents'
+  appears_on:
+    - entity.elastic_index.collection
+
+entity.elastic_index.delete_indices:
+  route_name: 'elastic_search.controller.indices.delete'
+  title: 'Delete Maps Locally and Remotely'
+  appears_on:
+    - entity.elastic_index.collection
+
+entity.elastic_analyzer.add_form:
+  route_name: 'entity.elastic_analyzer.add_form'
+  title: 'Add Elastic analyzer'
+  appears_on:
+    - entity.elastic_analyzer.collection

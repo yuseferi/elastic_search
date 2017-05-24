@@ -1,0 +1,17 @@
+{
+  "name": "drupal/elastic_query_field",
+  "type": "drupal-module",
+  "description": "Provides a field in which you can enter a dsl query, and return a result for rendering",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/elastic_query_field",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/elastic_query_field",
+    "source": "http://cgit.drupalcode.org/elastic_query_field"
+  },
+  "require": {
+    "php": ">=7.0",
+    "elasticsearch/elasticsearch": "^5"
+  },
+}

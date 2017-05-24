@@ -1,0 +1,7 @@
+name: Elastic Search Debug Tools
+type: module
+description: Elastic search debug tools for Drupal 8
+core: 8.x
+package: Search
+dependencies:
+  - elastic_search

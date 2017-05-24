@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Contains elastic_query_field.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function elastic_query_field_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the elastic_query_field module.
+    case 'help.page.elastic_query_field':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides a field in which you can enter a dsl query, and return a result for rendering') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
