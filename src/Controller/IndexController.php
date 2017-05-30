@@ -131,6 +131,10 @@ class IndexController extends ControllerBase {
    */
   public static function processUpdateMappingBatch(array $indices, array &$context) {
 
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+
     //static function so cannot use DI :'(
     $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
 
@@ -146,12 +150,6 @@ class IndexController extends ControllerBase {
       }
       $context['sandbox']['progress']++;
       $context['results'][] = $index;
-    }
-
-    //Optional pause
-    $serverConfig = \Drupal::config('elastic_search.server');
-    if ($serverConfig->get('advanced.pause') !== NULL) {
-      sleep((int) $serverConfig->get('advanced.pause'));
     }
 
   }

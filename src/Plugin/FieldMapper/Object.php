@@ -131,6 +131,9 @@ class Object extends FieldMapperBase {
    * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
    * @throws \Drupal\Core\DependencyInjection\ContainerNotInitializedException
    * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+   * @throws \Drupal\Component\Plugin\Exception\PluginException
+   * @throws \Drupal\elastic_search\Exception\ElasticDocumentManagerRecursionException
+   * @throws \Drupal\elastic_search\Exception\MapNotFoundException
    */
   public function normalizeFieldData(string $id,
                                      array $data,
@@ -141,6 +144,16 @@ class Object extends FieldMapperBase {
     $entityStorage = $this->entityTypeManager->getStorage($fieldMappingData['map'][0]['target_type']);
     $originalEntity = $entityStorage->load($data[0]['target_id']);
     if ($originalEntity) {
+      try {
+        if (array_key_exists('langcode', $data)) {
+          $trans = $originalEntity->getTranslation($data['langcode']);
+          $originalEntity = $trans;
+        }
+      } catch (\Throwable $t) {
+        //exception might be caused by there being no translation on the interface or the object not being translated
+        // so we ignore it and use the original entity if an exception happens
+      }
+
       $originalId = FieldableEntityMap::getMachineName($originalEntity->getEntityTypeId(),
                                                        $originalEntity->bundle());
       $originalData = $originalEntity->toArray();

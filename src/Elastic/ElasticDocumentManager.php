@@ -224,6 +224,9 @@ class ElasticDocumentManager implements ContainerInjectionInterface {
           /** @var \Drupal\elastic_search\Plugin\FieldMapperInterface $fieldMapper */
           $fieldMapper = $this->fieldMapperManager->createInstance($fieldMappingData[$id]['map'][0]['type']);
           try {
+            if (array_key_exists('langcode', $fieldData)) {
+              $data['langcode'] = $fieldData['langcode'][0]['value'];
+            }
             $flattened = $fieldMapper->normalizeFieldData($id,
                                                           $data,
                                                           $fieldMappingData[$id]);
@@ -235,7 +238,6 @@ class ElasticDocumentManager implements ContainerInjectionInterface {
                                                           $fieldMappingData[$id]);
 
           }
-
           $output[$id] = $flattened;
         } catch (FieldMapperFlattenSkipException $e) {
           //Do nothing if this type of exception is thrown as it means skip adding the data
