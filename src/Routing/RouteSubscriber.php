@@ -41,6 +41,7 @@ class RouteSubscriber extends RouteSubscriberBase {
     foreach ($this->entityTypeManager->getDefinitions() as $entity_type_id => $entity_type) {
       if ($route = $this->getEntityLoadRoute($entity_type)) {
         $collection->add("entity.$entity_type_id.elastic_edit", $route);
+        $collection->add("entity.$entity_type_id.elastic_mapping_add", $route);
       }
     }
   }
@@ -55,9 +56,10 @@ class RouteSubscriber extends RouteSubscriberBase {
    *   The generated route, if available.
    */
   protected function getEntityLoadRoute(EntityTypeInterface $entity_type) {
-    if ($devel_load = $entity_type->getLinkTemplate('elastic-mapping-add')) {
+    if ($elasticAddEdit = $entity_type->getLinkTemplate('elastic-mapping-add')) {
       $entity_type_id = $entity_type->id();
-      $route = new Route($devel_load);
+      $route = new Route($elasticAddEdit);
+      //Controller deals with the logic for add/edit redirects
       $route
         ->addDefaults([
                         '_controller' => '\Drupal\elastic_search\Controller\MappingController::entityLoad',
