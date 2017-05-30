@@ -67,7 +67,6 @@ function elastic_search_fieldable_entity_map_insert(EntityInterface $entity) {
   $manager->markIndexForServerUpdateFromFieldMap($entity);
 }
 
-//TODO - ALL CRUD HOOKS BELOW MUST SHOULD FAILURES TO A QUEUE
 /**
  * @param \Drupal\Core\Entity\EntityInterface $entity
  *
@@ -127,7 +126,6 @@ function elastic_search_entity_insert(EntityInterface $entity) {
  * Deals with recursion of items to stop circular flattening actions
  *
  * @param \Drupal\Core\Entity\EntityInterface $entity
- * @param array                               $entityList
  *
  * @internal param int $currentDepth
  * @internal param int $maxDepth
@@ -142,6 +140,10 @@ function elastic_search_entity_update(EntityInterface $entity) {
 
 }
 
+/**
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ * @param array                               $entityList
+ */
 function _elastic_search_entity_update(EntityInterface $entity, array $entityList = []) {
 
   if (in_array($entity->uuid(), $entityList, FALSE)) {
@@ -197,6 +199,10 @@ function elastic_search_entity_delete(EntityInterface $entity) {
   }
 }
 
+/**
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ * @param array                               $entityList
+ */
 function _elastic_search_update_backreferences(EntityInterface $entity, array &$entityList) {
   $br = \Drupal::getContainer()->get('elastic_search.backreference_processor');
   /** @var \Drupal\field\Entity\FieldConfig[] $rfs */
@@ -215,7 +221,6 @@ function _elastic_search_update_backreferences(EntityInterface $entity, array &$
     }
   }
 }
-
 
 /**
  * Implements hook_token_info().

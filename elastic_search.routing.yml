@@ -8,15 +8,6 @@ elastic_search.server_form:
   options:
     _admin_route: TRUE
 
-#for some reason core node displays fail if this path simply doesnt exist due to some drupal magic
-#It is not shown anywhere and we dont actually want this path, but we must create it, thanks Dries!
-entity.node.elastic_mapping_add:
-  path: '/'
-  requirements:
-    _permission: 'administer elasticsearch'
-  options:
-    _admin_route: TRUE
-
 
 elastic_search.controller.fem.view:
   path: '/admin/config/search/elastic/fem/{mapping}/view'
