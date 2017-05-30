@@ -14,8 +14,8 @@ elastic_search.server:
     advanced:
       type: mapping
       mapping:
-        active:
-          type: boolean
+        pause:
+          type: integer
         developer:
           type: mapping
           mapping:

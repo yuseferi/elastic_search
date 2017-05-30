@@ -104,6 +104,13 @@ class ServerForm extends ConfigFormBase {
       '#collapsed'   => TRUE,
     ];
 
+    $form['advanced']['pause'] = [
+      '#type'          => 'number',
+      '#title'         => $this->t('Pause duration'),
+      '#default_value' => $this->configuration->get('advanced.pause'),
+      '#description'   => $this->t('If this is set then at the end of any batch operation that contacts the remote server the function will sleep for this time. This may help relieve memory pressure on constrained elastic resources'),
+    ];
+
     $form['advanced']['developer'] = [
       '#tree'        => TRUE,
       '#type'        => 'details',
@@ -204,6 +211,7 @@ class ServerForm extends ConfigFormBase {
                  $form_state->getValue(['advanced', 'validate', 'active']))
            ->set('advanced.validate.die_hard',
                  $form_state->getValue(['advanced', 'validate', 'die_hard']))
+           ->set('advanced.pause', $form_state->getValue(['advanced', 'pause']))
            ->save();
   }
 

@@ -148,6 +148,12 @@ class IndexController extends ControllerBase {
       $context['results'][] = $index;
     }
 
+    //Optional pause
+    $serverConfig = \Drupal::config('elastic_search.server');
+    if ($serverConfig->get('advanced.pause') !== NULL) {
+      sleep((int) $serverConfig->get('advanced.pause'));
+    }
+
   }
 
   /**
@@ -226,6 +232,12 @@ class IndexController extends ControllerBase {
       $context['sandbox']['progress']++;
       $context['results'][] = $result;
     }
+
+    //Optional pause
+    $serverConfig = \Drupal::config('elastic_search.server');
+    if ($serverConfig->get('advanced.pause') !== NULL) {
+      sleep((int) $serverConfig->get('advanced.pause'));
+    }
   }
 
   /**
@@ -288,6 +300,7 @@ class IndexController extends ControllerBase {
       $context['sandbox']['progress']++;
       $context['results'][] = $index;
     }
+    //As this is only local we do not offer the optional pause
   }
 
   /**
@@ -319,6 +332,9 @@ class IndexController extends ControllerBase {
   /**
    * @param $indices
    * @param $context
+   *
+   * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
+   * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
    */
   public static function processClearBatch($indices, &$context) {
 
@@ -329,6 +345,11 @@ class IndexController extends ControllerBase {
       //TODO - response handling
       $indexManager->clearIndexDocuments($index->getIndexName(), $index->getIndexId());
       $context['sandbox']['progress']++;
+    }
+    //Optional pause
+    $serverConfig = \Drupal::config('elastic_search.server');
+    if ($serverConfig->get('advanced.pause') !== NULL) {
+      sleep((int) $serverConfig->get('advanced.pause'));
     }
 
   }
@@ -362,10 +383,10 @@ class IndexController extends ControllerBase {
       foreach ($chunks as &$chunk) {
         array_unshift($chunk, $elasticIndex);
       }
-      $processed = array_merge($processed,$chunks);
+      $processed = array_merge($processed, $chunks);
     }
 
-    return $this->executeBatch($chunks,
+    return $this->executeBatch($processed,
                                '\Drupal\elastic_search\Controller\IndexController::processDocumentIndexBatch',
                                '\Drupal\elastic_search\Controller\IndexController::finishBatch',
                                'document update');
@@ -384,8 +405,13 @@ class IndexController extends ControllerBase {
 
     $index = array_shift($entities);
 
-    $indexManager->documentUpdate($index,$entities);
+    $indexManager->documentUpdate($index, $entities);
     $context['results'][] = $index;
+    //Optional pause
+    $serverConfig = \Drupal::config('elastic_search.server');
+    if ($serverConfig->get('advanced.pause') !== NULL) {
+      sleep((int) $serverConfig->get('advanced.pause'));
+    }
 
   }
 

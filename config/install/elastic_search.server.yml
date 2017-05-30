@@ -7,6 +7,7 @@ port: ''
 kibana: ''
 index_prefix: ''
 advanced:
+  pause: 0
   active: 0
   developer:
     active: 0
