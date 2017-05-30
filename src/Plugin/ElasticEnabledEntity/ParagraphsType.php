@@ -10,24 +10,27 @@ namespace Drupal\elastic_search\Plugin\ElasticEnabledEntity;
 
 use Drupal\elastic_search\Annotation\ElasticEnabledEntity;
 use Drupal\elastic_search\Plugin\ElasticEnabledEntityBase;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
- * Class NodeType
+ * Class ParagraphsType
  *
  * @package Drupal\elastic_search\Plugin\ElasticEnabledEntity
  *
  * @ElasticEnabledEntity(
- *   id = "taxonomy_vocabulary",
- *   label = @Translation("Taxonomy Vocabulary")
+ *   id = "paragraphs_type",
+ *   label = @Translation("paragraphs type")
  * )
  */
-class TaxonomyVocabulary extends ElasticEnabledEntityBase {
+class ParagraphsType extends ElasticEnabledEntityBase {
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
+   *
+   * @throws \InvalidArgumentException
    */
   public function getChildType(string $entity_type, string $bundle_type): string {
-    return 'taxonomy_term';
+    return 'paragraph';
   }
 
 }

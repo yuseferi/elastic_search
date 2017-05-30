@@ -14,6 +14,6 @@ interface ElasticEnabledEntityInterface extends PluginInspectionInterface, Conta
   /**
    * @return string
    */
-  public function getParentType(string $entity_type, string $bundle_type): string;
+  public function getChildType(string $entity_type, string $bundle_type): string;
 
 }

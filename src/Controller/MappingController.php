@@ -113,7 +113,7 @@ class MappingController extends ControllerBase {
     $bundle_type = $entity->id();
     $entity_type = $entity->bundle();
 
-    //If you attach an elastic index to a node bundle the entity type is node_type, but actually you need the parent when you look for bundles
+    //If you attach an elastic index to a node bundle the entity type is node_type, but actually you need the child when you look for bundles
     //This means you need a whole plugin system around this to allow something else to alter some values so that they can actually match the proper type
     //It would be nice to find a lower overhead way to manage this
     if ($this->elasticPluginManager->hasDefinition($entity_type)) {
@@ -123,7 +123,7 @@ class MappingController extends ControllerBase {
       $entityAlter = $this->elasticPluginManager->createInstance('generic');
     }
 
-    $parent_type = $entityAlter->getParentType($entity_type, $bundle_type);
+    $parent_type = $entityAlter->getChildType($entity_type, $bundle_type);
 
     $has = $this->entityTypeManager->hasDefinition($parent_type);
     $bundles = $this->entityManager->getBundleInfo($parent_type); // TODO - deprecated

@@ -29,7 +29,7 @@ class Generic extends ElasticEnabledEntityBase {
    *
    * @throws \InvalidArgumentException
    */
-  public function getParentType(string $entity_type, string $bundle_type): string {
+  public function getChildType(string $entity_type, string $bundle_type): string {
     return $entity_type;
   }
 
