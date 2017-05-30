@@ -10,6 +10,7 @@ use Drupal\elastic_search\Elastic\ElasticIndexGenerator;
 use Drupal\elastic_search\Elastic\ElasticIndexManager;
 use Drupal\elastic_search\Entity\ElasticIndex;
 use Drupal\elastic_search\Entity\ElasticIndexInterface;
+use Drupal\elastic_search\Entity\FieldableEntityMap;
 use Drupal\elastic_search\ValueObject\BatchDefinition;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -376,6 +377,12 @@ class IndexController extends ControllerBase {
 
     $processed = [];
     foreach ($elasticIndices as $elasticIndex) {
+      //load fieldable entity map and skip update if child only
+      /** @var \Drupal\elastic_search\Entity\FieldableEntityMapInterface $fm */
+      $fm = FieldableEntityMap::load($elasticIndex->getMappingEntityId());
+      if ($fm->isChildOnly()) {
+        continue;
+      }
       $entities = $this->indexManager->getDocumentsThatShouldBeInIndex($elasticIndex);
       $chunks = array_chunk($entities, $this->batchChunkSize);
       foreach ($chunks as &$chunk) {
