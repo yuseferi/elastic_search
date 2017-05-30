@@ -225,7 +225,7 @@ class ElasticDocumentManager implements ContainerInjectionInterface {
           $fieldMapper = $this->fieldMapperManager->createInstance($fieldMappingData[$id]['map'][0]['type']);
           try {
             if (array_key_exists('langcode', $fieldData)) {
-              $data['langcode'] = $fieldData['langcode'][0]['value'];
+              $fieldMappingData[$id]['langcode'] = $fieldData['langcode'][0]['value'];
             }
             $flattened = $fieldMapper->normalizeFieldData($id,
                                                           $data,

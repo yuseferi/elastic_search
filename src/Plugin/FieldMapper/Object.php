@@ -141,28 +141,44 @@ class Object extends FieldMapperBase {
     if (empty($data) || !array_key_exists('target_id', $data[0])) {
       throw new FieldMapperFlattenSkipException();
     }
+    $objectMappings = [];
     $entityStorage = $this->entityTypeManager->getStorage($fieldMappingData['map'][0]['target_type']);
-    $originalEntity = $entityStorage->load($data[0]['target_id']);
-    if ($originalEntity) {
-      try {
-        if (array_key_exists('langcode', $data)) {
-          $trans = $originalEntity->getTranslation($data['langcode']);
-          $originalEntity = $trans;
+    foreach ($data as $datum) {
+      $originalEntity = $entityStorage->load($datum['target_id']);
+      if ($originalEntity) {
+        try {
+          if (array_key_exists('langcode', $fieldMappingData)) {
+            //Get a translation if it exists
+            $trans = $originalEntity->getTranslation($fieldMappingData['langcode']);
+            $originalEntity = $trans;
+          }
+        } catch (\Throwable $t) {
+          //exception might be caused by there being no translation on the interface or the object not being translated
+          //so we ignore it and use the original entity if an exception happens
         }
-      } catch (\Throwable $t) {
-        //exception might be caused by there being no translation on the interface or the object not being translated
-        // so we ignore it and use the original entity if an exception happens
-      }
 
-      $originalId = FieldableEntityMap::getMachineName($originalEntity->getEntityTypeId(),
-                                                       $originalEntity->bundle());
-      $originalData = $originalEntity->toArray();
-      $objectMapping = $this->documentManager->buildDataFromMap($originalId, $originalData);
-      if (!empty($objectMapping)) {
-        return $objectMapping;
+        $originalId = FieldableEntityMap::getMachineName($originalEntity->getEntityTypeId(),
+                                                         $originalEntity->bundle());
+        $originalData = $originalEntity->toArray();
+        $objectMapping = $this->documentManager->buildDataFromMap($originalId, $originalData);
+        if (!empty($objectMapping)) {
+          $objectMappings[] = $objectMapping;
+        } else {
+          //we can throw this here and exit the loop as we know all other items in the list will be the same type
+          throw new FieldMapperFlattenSkipException('No map exists for this type so data cannot be mapped');
+        }
       }
     }
-    throw new FieldMapperFlattenSkipException('No map exists for this type so data cannot be mapped');
+
+
+    //Thank drupal for making a bool a "1"
+    if ($fieldMappingData['nested'] === '1') {
+      //If we are nested we can safely return the array of data
+      return $objectMappings;
+    }
+    //If we are not nested we need to return the first item
+    //it is guaranteed to exists as we have ensured there is data and that a map exists
+    return $objectMappings[0];
   }
 
 }
