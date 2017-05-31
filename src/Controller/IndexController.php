@@ -190,6 +190,10 @@ class IndexController extends ControllerBase {
    */
   public static function processDeleteBatch(array $elasticIndices, array &$context) {
 
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+
     //static function so cannot use DI :'(
     $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
 
@@ -337,6 +341,10 @@ class IndexController extends ControllerBase {
    */
   public static function processClearBatch($indices, &$context) {
 
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+    
     $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
 
     /** @var ElasticIndex $index */
