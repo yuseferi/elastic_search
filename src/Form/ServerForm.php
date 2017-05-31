@@ -4,6 +4,8 @@ namespace Drupal\elastic_search\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\elastic_search\Entity\ElasticIndex;
+use Drupal\elastic_search\Entity\ElasticIndexInterface;
 
 /**
  * Class ServerForm.
@@ -192,6 +194,20 @@ class ServerForm extends ConfigFormBase {
       $config->set('auth.password', $form_state->getValue(['auth', 'password']))
              ->set('auth.username',
                    $form_state->getValue(['auth', 'username']));
+    }
+
+    //if the prefix has changed mark the indices as needing an update
+    if ($form_state->getValue('index_prefix') !== $config->get('index_prefix')) {
+      /** @var \Drupal\elastic_search\Entity\ElasticIndexInterface[] $indices */
+      $indices = ElasticIndex::loadMultiple();
+      foreach ($indices as $index) {
+        $index->setNeedsUpdate();
+        try {
+          $index->save();
+        } catch (\Throwable $t) {
+          $this->logger('elastic.index')->error($t->getMessage());
+        }
+      }
     }
 
     $config->set('scheme', $form_state->getValue('scheme'))
