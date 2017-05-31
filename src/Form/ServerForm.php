@@ -5,7 +5,7 @@ namespace Drupal\elastic_search\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\elastic_search\Entity\ElasticIndex;
-use Drupal\elastic_search\Entity\ElasticIndexInterface;
+use Drupal\elastic_search\ValueObject\BatchDefinition;
 
 /**
  * Class ServerForm.
@@ -14,6 +14,9 @@ use Drupal\elastic_search\Entity\ElasticIndexInterface;
  */
 class ServerForm extends ConfigFormBase {
 
+  /**
+   * @var
+   */
   private $configuration;
 
   /**
@@ -184,6 +187,8 @@ class ServerForm extends ConfigFormBase {
 
     $config = $this->config('elastic_search.server');
 
+    $currentIndexPrefix = $config->get('index_prefix');
+
     //If neither the username or pass are blank, or both are blank, reset
     if (($form_state->getValue(['auth', 'password']) !== '' &&
          $form_state->getValue(['auth', 'user']) !== '') ||
@@ -194,20 +199,6 @@ class ServerForm extends ConfigFormBase {
       $config->set('auth.password', $form_state->getValue(['auth', 'password']))
              ->set('auth.username',
                    $form_state->getValue(['auth', 'username']));
-    }
-
-    //if the prefix has changed mark the indices as needing an update
-    if ($form_state->getValue('index_prefix') !== $config->get('index_prefix')) {
-      /** @var \Drupal\elastic_search\Entity\ElasticIndexInterface[] $indices */
-      $indices = ElasticIndex::loadMultiple();
-      foreach ($indices as $index) {
-        $index->setNeedsUpdate();
-        try {
-          $index->save();
-        } catch (\Throwable $t) {
-          $this->logger('elastic.index')->error($t->getMessage());
-        }
-      }
     }
 
     $config->set('scheme', $form_state->getValue('scheme'))
@@ -229,6 +220,62 @@ class ServerForm extends ConfigFormBase {
                  $form_state->getValue(['advanced', 'validate', 'die_hard']))
            ->set('advanced.pause', $form_state->getValue(['advanced', 'pause']))
            ->save();
+
+    //if the prefix has changed mark the indices as needing an update
+    if ($form_state->getValue('index_prefix') !== $currentIndexPrefix) {
+      /** @var \Drupal\elastic_search\Entity\ElasticIndexInterface[] $indices */
+      $indices = ElasticIndex::loadMultiple();
+      //create a batch to run markIndicesForServerUpdate
+      $chunks = array_chunk($indices, 30);
+
+      $this->executeBatch($chunks,'\Drupal\elastic_search\Form\ServerForm::processIndexEntityUpdate','\Drupal\elastic_search\Controller\IndexController::finishBatch');
+    }
+  }
+
+  /**
+   * @param array  $chunks
+   * @param string $opCallback
+   * @param string $finishCallback
+   * @param string $messageKey
+   */
+  protected function executeBatch(array $chunks, string $opCallback, string $finishCallback, string $messageKey = '') {
+
+    $ops = [];
+    foreach ($chunks as $chunkedIndices) {
+      $ops[] = [$opCallback, [$chunkedIndices]];
+    }
+    $batch = new BatchDefinition($ops,
+                                 $finishCallback,
+                                 $this->t('Processing index ' . $messageKey . ' batch'),
+                                 $this->t('Index ' . $messageKey . ' is starting.'),
+                                 $this->t('Processed @current out of @total.'),
+                                 $this->t('Encountered an error.')
+    );
+    batch_set($batch->getDefinitionArray());
+
+  }
+
+  /**
+   * @param array $indices
+   * @param array $context
+   */
+  public static function processIndexEntityUpdate(array $indices, array &$context) {
+
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+
+    foreach ($indices as $index) {
+      $index->setNeedsUpdate();
+      try {
+        $index->save();
+        $context['results'][] = $index;
+      } catch (\Throwable $t) {
+        \Drupal::logger('elastic.index')->error($t->getMessage());
+      }
+      $context['sandbox']['progress']++;
+    }
+
   }
 
 }
