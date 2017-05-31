@@ -123,6 +123,13 @@ class ServerForm extends ConfigFormBase {
       '#description'   => $this->t('How many documents to index at once on bulk and queue operations. Elastic search likes bulk updates around 5-15mb https://www.elastic.co/guide/en/elasticsearch/guide/current/indexing-performance.html#_using_and_sizing_bulk_requests'),
     ];
 
+    $form['advanced']['index_batch_size'] = [
+      '#type'          => 'number',
+      '#title'         => $this->t('Index Batch Size'),
+      '#default_value' => $this->configuration->get('advanced.index_batch_size'),
+      '#description'   => $this->t('How many indices to CRUD per batch, low is usually better'),
+    ];
+
     $form['advanced']['developer'] = [
       '#tree'        => TRUE,
       '#type'        => 'details',
@@ -227,6 +234,7 @@ class ServerForm extends ConfigFormBase {
                  $form_state->getValue(['advanced', 'validate', 'die_hard']))
            ->set('advanced.pause', $form_state->getValue(['advanced', 'pause']))
            ->set('advanced.batch_size', $form_state->getValue(['advanced', 'batch_size']))
+           ->set('advanced.index_batch_size', $form_state->getValue(['advanced', 'index_batch_size']))
            ->save();
 
     //if the prefix has changed mark the indices as needing an update

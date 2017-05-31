@@ -45,7 +45,7 @@ class IndexController extends ControllerBase {
   /**
    * @var int
    */
-  protected $batchChunkSize = 100;
+  protected $batchChunkSize;
 
   /**
    * Index chunk size is handled seperately as they cannot be created in bulk and large numbers will cause gateway
@@ -53,7 +53,7 @@ class IndexController extends ControllerBase {
    *
    * @var int
    */
-  protected $indexChunkSize = 5;
+  protected $indexChunkSize;
 
   /**
    * @inheritDoc
@@ -62,13 +62,15 @@ class IndexController extends ControllerBase {
                               LoggerChannelInterface $loggerChannel,
                               EntityStorageInterface $indexStorage,
                               ElasticIndexGenerator $indexGenerator,
-                              $batchSize
+                              $batchSize,
+                              $indexBatchSize
   ) {
     $this->indexManager = $indexManager;
     $this->loggerChannel = $loggerChannel;
     $this->indexStorage = $indexStorage;
     $this->indexGenerator = $indexGenerator;
     $this->batchChunkSize = (int) $batchSize;
+    $this->indexChunkSize = (int) $indexBatchSize;
   }
 
   /**
@@ -79,13 +81,15 @@ class IndexController extends ControllerBase {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   public static function create(ContainerInterface $container) {
+    $conf = $container->get('config.factory')->get('elastic_search.server');
     return new static($container->get('elastic_search.indices.manager'),
                       $container->get('logger.factory')
                                 ->get('elastic_search.indices.controller'),
                       $container->get('entity_type.manager')
                                 ->getStorage('elastic_index'),
                       $container->get('elastic_search.indices.generator'),
-                      $container->get('config.factory')->get('elastic_search.server')->get('advanced.batch_size'));
+                      $conf->get('advanced.batch_size'),
+                      $conf->get('advanced.index_batch_size'));
   }
 
   /**
@@ -205,7 +209,7 @@ class IndexController extends ControllerBase {
     if (empty($elasticIndices)) {
       $elasticIndices = $this->indexStorage->loadMultiple();
     }
-    $chunks = array_chunk($elasticIndices, $this->batchChunkSize);
+    $chunks = array_chunk($elasticIndices, $this->indexChunkSize);
     return $this->executeBatch($chunks,
                                '\Drupal\elastic_search\Controller\IndexController::processDeleteBatch',
                                '\Drupal\elastic_search\Controller\IndexController::finishBatch',
@@ -223,7 +227,7 @@ class IndexController extends ControllerBase {
     if (empty($elasticIndices)) {
       $elasticIndices = $this->indexStorage->loadMultiple();
     }
-    $chunks = array_chunk($elasticIndices, $this->batchChunkSize);
+    $chunks = array_chunk($elasticIndices, $this->indexChunkSize);
     return $this->executeBatch($chunks,
                                '\Drupal\elastic_search\Controller\IndexController::processDeleteLocalBatch',
                                '\Drupal\elastic_search\Controller\IndexController::finishBatch',
@@ -378,6 +382,11 @@ class IndexController extends ControllerBase {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public static function processGenerateBatch(array $indices, array &$context) {
+
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+    
     /** @var ElasticIndex $index */
     foreach ($indices as $index) {
       $index->save();

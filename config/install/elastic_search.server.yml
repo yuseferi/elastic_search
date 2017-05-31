@@ -8,6 +8,8 @@ kibana: ''
 index_prefix: ''
 advanced:
   pause: 0
+  batch_size: 100
+  index_batch_size: 1
   active: 0
   developer:
     active: 0

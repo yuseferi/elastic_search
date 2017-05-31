@@ -32,6 +32,26 @@ elastic_search.fem.generator:
   options:
     _admin_route: TRUE
 
+elastic_search.indices.select_update:
+  path: '/admin/config/search/elastic/indices/update_select_indices_documents'
+  defaults:
+    _form: '\Drupal\elastic_search\Form\UpdateSelectIndicesDocumentsForm'
+    _title: 'Update Select Indices Documents'
+  requirements:
+    _permission: 'administer elasticsearch'
+  options:
+    _admin_route: TRUE
+
+elastic_search.indices.select_update_mappings:
+  path: '/admin/config/search/elastic/indices/update_select_indices_mappings'
+  defaults:
+    _form: '\Drupal\elastic_search\Form\UpdateSelectIndicesMappingsForm'
+    _title: 'Update Select Indices Mapping'
+  requirements:
+    _permission: 'administer elasticsearch'
+  options:
+    _admin_route: TRUE
+
 elastic_search.controller.mapping.build:
   path: '/admin/config/search/elastic/fem/build'
   defaults:

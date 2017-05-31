@@ -20,6 +20,13 @@ This means:
 * PHP >=7.0
 * Ace code editor. Add this to your libraries/ folder so /libraries/ace/src-min-noconflict/ace.js is available
 
+# Notes
+
+Index documents in bulk and update indexes and mappings in small groups. This seems to produce the best results for cluster memory and to reduce potential timeouts
+By default index and mapping operations are done 1 at a time and documents are indexed in batches of 100. These settings can be changed on the server config page
+Because batches involve writing to the database you need to be careful that the total number does not cause an insert query which is too large. 100-200 is optimal
+
+
 # Supports
 
 * Multifield mapping

@@ -16,6 +16,10 @@ elastic_search.server:
       mapping:
         pause:
           type: integer
+        batch_size:
+          type: integer
+        index_batch_size:
+          type: integer
         developer:
           type: mapping
           mapping:

@@ -31,7 +31,15 @@ entity.elastic_index.generate_indices:
 
 entity.elastic_index.update_indices:
   route_name: 'elastic_search.controller.indices.update'
-  title: 'Update Server Indices and Mappings (remote)'
+  title: 'Push Server Indices and Mappings (remote)'
+  appears_on:
+    - entity.elastic_index.collection
+    - elastic_search.controller.indices.generate
+    - elastic_search.controller.indices.update
+
+entity.elastic_index.update_select_indices_mappings:
+  route_name: 'elastic_search.indices.select_update_mappings'
+  title: 'Push Mappings to Select Indices (remote)'
   appears_on:
     - entity.elastic_index.collection
     - elastic_search.controller.indices.generate
