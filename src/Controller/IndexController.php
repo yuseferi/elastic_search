@@ -184,6 +184,24 @@ class IndexController extends ControllerBase {
 
   /**
    * @param ElasticIndexInterface[] $elasticIndices
+   *
+   * @return null|\Symfony\Component\HttpFoundation\RedirectResponse
+   */
+  public function deleteIndicesLocal(array $elasticIndices = []) {
+
+    if (empty($elasticIndices)) {
+      $elasticIndices = $this->indexStorage->loadMultiple();
+    }
+    $chunks = array_chunk($elasticIndices, $this->batchChunkSize);
+    return $this->executeBatch($chunks,
+                               '\Drupal\elastic_search\Controller\IndexController::processDeleteLocalBatch',
+                               '\Drupal\elastic_search\Controller\IndexController::finishBatch',
+                               'deletion');
+
+  }
+
+  /**
+   * @param ElasticIndexInterface[] $elasticIndices
    * @param array                   $context
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
@@ -241,6 +259,38 @@ class IndexController extends ControllerBase {
     if ($serverConfig->get('advanced.pause') !== NULL) {
       sleep((int) $serverConfig->get('advanced.pause'));
     }
+  }
+
+  /**
+   * @param ElasticIndexInterface[] $elasticIndices
+   * @param array                   $context
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public static function processDeleteLocalBatch(array $elasticIndices, array &$context) {
+
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+
+    //Process the indices
+    /** @var ElasticIndexInterface $index */
+    foreach ($elasticIndices as $index) {
+      $result = [
+        'index_status'  => 'available',
+        'entity_status' => 'available',
+        'id'            => $index->id(),
+      ];
+
+      $index->delete();
+      $result['entity_status'] = 'deleted';
+
+      drupal_set_message($index->id() . ' Status: ' . $result['index_status'] . ' Entity Status: ' .
+                         $result['entity_status']);
+      $context['sandbox']['progress']++;
+      $context['results'][] = $result;
+    }
+
   }
 
   /**
@@ -344,7 +394,7 @@ class IndexController extends ControllerBase {
     if (!array_key_exists('progress', $context['sandbox'])) {
       $context['sandbox']['progress'] = 0;
     }
-    
+
     $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
 
     /** @var ElasticIndex $index */
