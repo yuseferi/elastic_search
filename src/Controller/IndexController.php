@@ -227,7 +227,8 @@ class IndexController extends ControllerBase {
     if (empty($elasticIndices)) {
       $elasticIndices = $this->indexStorage->loadMultiple();
     }
-    $chunks = array_chunk($elasticIndices, $this->indexChunkSize);
+    //arbitrary value
+    $chunks = array_chunk($elasticIndices, 50);
     return $this->executeBatch($chunks,
                                '\Drupal\elastic_search\Controller\IndexController::processDeleteLocalBatch',
                                '\Drupal\elastic_search\Controller\IndexController::finishBatch',
@@ -503,10 +504,6 @@ class IndexController extends ControllerBase {
    */
   public static function processDocumentIndexBatch(array $entities, array &$context) {
 
-    if (!array_key_exists('progress', $context['sandbox'])) {
-      $context['sandbox']['progress'] = 0;
-    }
-
     //static function so cannot use DI :'(
     $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
 
@@ -514,7 +511,6 @@ class IndexController extends ControllerBase {
 
     $indexManager->documentUpdate($index, $entities);
     $context['results'][] = $index;
-    $context['sandbox']['progress'] += count($entities);
     //Optional pause
     $serverConfig = \Drupal::config('elastic_search.server');
     if ($serverConfig->get('advanced.pause') !== NULL) {

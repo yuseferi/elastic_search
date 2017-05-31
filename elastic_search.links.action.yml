@@ -55,7 +55,7 @@ entity.elastic_index.update_select_indices_documents:
 
 elastic.elastic_index.document_update_all:
   route_name: 'elastic_search.controller.indices.documents.update'
-  title: 'Index All Documents (remote)'
+  title: 'Push All Documents (remote)'
   appears_on:
     - entity.elastic_index.collection
 
