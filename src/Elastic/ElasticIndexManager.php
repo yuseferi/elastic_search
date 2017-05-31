@@ -194,8 +194,11 @@ class ElasticIndexManager implements ContainerInjectionInterface {
       //If the index exists then just delete and recreate it.
       //TODO - Next version some work will be done around this
       try {
-        $this->client->indices()->delete($index);
+        $result = $this->client->indices()->delete($index);
+        //Resolve the delete future to see if we can continue
+        $dstate = ($result['acknowledged'] || $result['shards_acknowledged']);
       } catch (\Throwable $t) {
+        drupal_set_message(json_encode($t->getMessage()));
         return FALSE;
       }
     }

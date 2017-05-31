@@ -175,15 +175,8 @@ class ElasticIndexGeneratorTest extends KernelTestBase {
                    ->makePartial();
     //No parameter means load all
     $output = $gen->generate();
-    $this->assertCount(1, $output);
-    /** @var ElasticIndex $index */
-    $index = reset($output);
-    $this->assertInstanceOf(ElasticIndex::class, $index);
-
-    $this->assertEquals('node__whatever__loaded', $index->getIndexId());
-    $this->assertEquals('en', $index->getIndexLanguage());
-    $this->assertEquals('_', $index->getSeparator());
-    $this->assertEquals('node__whatever__loaded_en', $index->getIndexName());
+    //as the entity exists already the generator will not return it
+    $this->assertCount(0, $output);
   }
 
   /**
