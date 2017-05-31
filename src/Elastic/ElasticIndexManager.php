@@ -188,8 +188,10 @@ class ElasticIndexManager implements ContainerInjectionInterface {
    * @throws \Exception
    */
   public function updateIndexOnServer(ElasticIndexInterface $elasticIndex) {
-    $index = ['index' => $elasticIndex->getIndexName(), 'client' => ['timeout' => 5, 'future' => 'lazy']];
+    //No futures
+    $index = ['index' => $elasticIndex->getIndexName(), 'client' => ['timeout' => 5]];
     $exists = $this->client->indices()->exists($index);
+    $index = ['index' => $elasticIndex->getIndexName(), 'client' => ['timeout' => 5, 'future' => 'lazy']];
     if ($exists) {
       //If the index exists then just delete and recreate it.
       //TODO - Next version some work will be done around this
@@ -198,7 +200,7 @@ class ElasticIndexManager implements ContainerInjectionInterface {
         //Resolve the delete future to see if we can continue
         $dstate = ($result['acknowledged'] || $result['shards_acknowledged']);
       } catch (\Throwable $t) {
-        drupal_set_message(json_encode($t->getMessage()));
+        drupal_set_message(json_encode($t->getMessage()),'error');
         return FALSE;
       }
     }
