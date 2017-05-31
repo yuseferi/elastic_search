@@ -68,6 +68,10 @@ class ElasticIndexGenerator implements ContainerInjectionInterface {
   }
 
   /**
+   * Generates a set of indices
+   * If an index exists already it will not be returned as it does not need to be generated and the purpose of this call
+   * is to create new objects to be saved
+   *
    * @param array $mapIds
    *
    * @return array

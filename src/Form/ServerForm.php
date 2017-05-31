@@ -116,6 +116,13 @@ class ServerForm extends ConfigFormBase {
       '#description'   => $this->t('If this is set then at the end of any batch operation that contacts the remote server the function will sleep for this time. This may help relieve memory pressure on constrained elastic resources'),
     ];
 
+    $form['advanced']['batch_size'] = [
+      '#type'          => 'number',
+      '#title'         => $this->t('Batch Size'),
+      '#default_value' => $this->configuration->get('advanced.batch_size'),
+      '#description'   => $this->t('How many documents to index at once on bulk and queue operations. Elastic search likes bulk updates around 5-15mb https://www.elastic.co/guide/en/elasticsearch/guide/current/indexing-performance.html#_using_and_sizing_bulk_requests'),
+    ];
+
     $form['advanced']['developer'] = [
       '#tree'        => TRUE,
       '#type'        => 'details',
@@ -219,6 +226,7 @@ class ServerForm extends ConfigFormBase {
            ->set('advanced.validate.die_hard',
                  $form_state->getValue(['advanced', 'validate', 'die_hard']))
            ->set('advanced.pause', $form_state->getValue(['advanced', 'pause']))
+           ->set('advanced.batch_size', $form_state->getValue(['advanced', 'batch_size']))
            ->save();
 
     //if the prefix has changed mark the indices as needing an update
@@ -228,7 +236,9 @@ class ServerForm extends ConfigFormBase {
       //create a batch to run markIndicesForServerUpdate
       $chunks = array_chunk($indices, 30);
 
-      $this->executeBatch($chunks,'\Drupal\elastic_search\Form\ServerForm::processIndexEntityUpdate','\Drupal\elastic_search\Controller\IndexController::finishBatch');
+      $this->executeBatch($chunks,
+                          '\Drupal\elastic_search\Form\ServerForm::processIndexEntityUpdate',
+                          '\Drupal\elastic_search\Controller\IndexController::finishBatch');
     }
   }
 

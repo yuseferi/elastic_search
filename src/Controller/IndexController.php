@@ -45,7 +45,15 @@ class IndexController extends ControllerBase {
   /**
    * @var int
    */
-  protected $batchChunkSize = 10;
+  protected $batchChunkSize = 100;
+
+  /**
+   * Index chunk size is handled seperately as they cannot be created in bulk and large numbers will cause gateway
+   * timeouts
+   *
+   * @var int
+   */
+  protected $indexChunkSize = 5;
 
   /**
    * @inheritDoc
@@ -53,12 +61,14 @@ class IndexController extends ControllerBase {
   public function __construct(ElasticIndexManager $indexManager,
                               LoggerChannelInterface $loggerChannel,
                               EntityStorageInterface $indexStorage,
-                              ElasticIndexGenerator $indexGenerator
+                              ElasticIndexGenerator $indexGenerator,
+                              $batchSize
   ) {
     $this->indexManager = $indexManager;
     $this->loggerChannel = $loggerChannel;
     $this->indexStorage = $indexStorage;
     $this->indexGenerator = $indexGenerator;
+    $this->batchChunkSize = (int) $batchSize;
   }
 
   /**
@@ -74,7 +84,8 @@ class IndexController extends ControllerBase {
                                 ->get('elastic_search.indices.controller'),
                       $container->get('entity_type.manager')
                                 ->getStorage('elastic_index'),
-                      $container->get('elastic_search.indices.generator'));
+                      $container->get('elastic_search.indices.generator'),
+                      $container->get('config.factory')->get('elastic_search.server')->get('advanced.batch_size'));
   }
 
   /**
@@ -89,6 +100,20 @@ class IndexController extends ControllerBase {
    */
   public function setBatchChunkSize(int $batchChunkSize) {
     $this->batchChunkSize = $batchChunkSize;
+  }
+
+  /**
+   * @return int
+   */
+  public function getIndexChunkSize(): int {
+    return $this->indexChunkSize;
+  }
+
+  /**
+   * @param int $indexChunkSize
+   */
+  public function setIndexChunkSize(int $indexChunkSize) {
+    $this->indexChunkSize = $indexChunkSize;
   }
 
   /**
@@ -116,7 +141,7 @@ class IndexController extends ControllerBase {
     if (empty($elasticIndices)) {
       $elasticIndices = $this->indexStorage->loadMultiple();
     }
-    $chunks = array_chunk($elasticIndices, $this->batchChunkSize);
+    $chunks = array_chunk($elasticIndices, $this->indexChunkSize);
     return $this->executeBatch($chunks,
                                '\Drupal\elastic_search\Controller\IndexController::processUpdateMappingBatch',
                                '\Drupal\elastic_search\Controller\IndexController::finishBatch',
@@ -144,13 +169,19 @@ class IndexController extends ControllerBase {
       try {
         if ($indexManager->updateIndexOnServer($index)) {
           $indexManager->markIndexAsUpdated($index);
-          drupal_set_message("Updated index: " . $index->id());
+          drupal_set_message('Updated index: ' . $index->id());
         }
       } catch (\Throwable $t) {
         IndexController::printErrorMessage($t);
       }
       $context['sandbox']['progress']++;
       $context['results'][] = $index;
+    }
+
+    //Optional pause
+    $serverConfig = \Drupal::config('elastic_search.server');
+    if ($serverConfig->get('advanced.pause') !== NULL) {
+      sleep((int) $serverConfig->get('advanced.pause'));
     }
 
   }
@@ -463,6 +494,10 @@ class IndexController extends ControllerBase {
    */
   public static function processDocumentIndexBatch(array $entities, array &$context) {
 
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+
     //static function so cannot use DI :'(
     $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
 
@@ -470,6 +505,7 @@ class IndexController extends ControllerBase {
 
     $indexManager->documentUpdate($index, $entities);
     $context['results'][] = $index;
+    $context['sandbox']['progress'] += count($entities);
     //Optional pause
     $serverConfig = \Drupal::config('elastic_search.server');
     if ($serverConfig->get('advanced.pause') !== NULL) {
