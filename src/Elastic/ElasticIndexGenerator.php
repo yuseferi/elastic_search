@@ -118,12 +118,12 @@ class ElasticIndexGenerator implements ContainerInjectionInterface {
         $index->setSeparator('_');
         $index->setIndexLanguage($lang->getId());
 
-        if ($exists = $indexStorage->load($index->getIndexName())) {
-          $index = $exists;
+        $in = ElasticIndex::buildIndexName($class['entity'], $class['bundle'],$lang->getId());
+        if (!$indexStorage->load($in)) {
+          $index->setMappingEntityId($map->getId());
+          $index->setNeedsUpdate();
+          $output[$index->getIndexName()] = $index;
         }
-        $index->setMappingEntityId($map->getId());
-        $index->setNeedsUpdate();
-        $output[$index->getIndexName()] = $index;
       }
 
     }

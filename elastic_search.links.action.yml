@@ -25,13 +25,13 @@ entity.elastic_mapping.delete_maps:
 
 entity.elastic_index.generate_indices:
   route_name: 'elastic_search.controller.indices.generate'
-  title: 'Generate Elastic Indices'
+  title: 'Generate New Elastic Indices (local)'
   appears_on:
     - entity.elastic_index.collection
 
 entity.elastic_index.update_indices:
   route_name: 'elastic_search.controller.indices.update'
-  title: 'Update Server Mappings'
+  title: 'Update Server Mappings (remote)'
   appears_on:
     - entity.elastic_index.collection
     - elastic_search.controller.indices.generate
@@ -39,19 +39,25 @@ entity.elastic_index.update_indices:
 
 elastic.elastic_index.document_update_all:
   route_name: 'elastic_search.controller.indices.documents.update'
-  title: 'Index All Documents'
+  title: 'Index All Documents (remote)'
   appears_on:
     - entity.elastic_index.collection
 
 elastic.elastic_index.clear_index_all:
   route_name: 'elastic_search.controller.indices.clear'
-  title: 'Clear All Documents'
+  title: 'Clear All Documents (remote)'
   appears_on:
     - entity.elastic_index.collection
 
 entity.elastic_index.delete_indices:
   route_name: 'elastic_search.controller.indices.delete'
-  title: 'Delete Maps Locally and Remotely'
+  title: 'Delete Maps (local and remote)'
+  appears_on:
+    - entity.elastic_index.collection
+
+entity.elastic_index.delete_indices_local:
+  route_name: 'elastic_search.controller.indices.deleteLocal'
+  title: 'Delete Maps (local)'
   appears_on:
     - entity.elastic_index.collection
 

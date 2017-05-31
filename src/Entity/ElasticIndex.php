@@ -155,7 +155,7 @@ class ElasticIndex extends ConfigEntityBase implements ElasticIndexInterface {
    *
    * @return string
    */
-  private function getCanonicalName($prefix = NULL): string {
+  public function getCanonicalName($prefix = NULL): string {
     //TODO - is there a way to avoid using \Drupal::config here?
     if ($prefix === NULL) {
       $config = \Drupal::config('elastic_search.server');

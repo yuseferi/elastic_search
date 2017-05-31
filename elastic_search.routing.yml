@@ -82,6 +82,16 @@ elastic_search.controller.indices.delete:
   options:
     _admin_route: TRUE
 
+elastic_search.controller.indices.deleteLocal:
+  path: '/admin/config/search/elastic/indices/delete_local'
+  defaults:
+    _controller: '\Drupal\elastic_search\Controller\IndexController::deleteIndicesLocal'
+    _title: 'Delete Indices Locally'
+  requirements:
+    _permission: 'administer elasticsearch'
+  options:
+    _admin_route: TRUE
+
 elastic_search.controller.indices.clear:
   path: '/admin/config/search/elastic/indices/clear'
   defaults:
