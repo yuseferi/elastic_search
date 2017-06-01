@@ -170,7 +170,6 @@ class Object extends FieldMapperBase {
       }
     }
 
-
     //Thank drupal for making a bool a "1"
     if ($fieldMappingData['nested'] === '1') {
       //If we are nested we can safely return the array of data
@@ -178,7 +177,11 @@ class Object extends FieldMapperBase {
     }
     //If we are not nested we need to return the first item
     //it is guaranteed to exists as we have ensured there is data and that a map exists
-    return $objectMappings[0];
+    if (count($objectMappings) > 0) {
+      return $objectMappings[0];
+    }
+    //If we really have nothing throw a skip exception
+    throw new FieldMapperFlattenSkipException();
   }
 
 }

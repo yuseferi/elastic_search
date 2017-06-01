@@ -26,6 +26,11 @@ Index documents in bulk and update indexes and mappings in small groups. This se
 By default index and mapping operations are done 1 at a time and documents are indexed in batches of 100. These settings can be changed on the server config page
 Because batches involve writing to the database you need to be careful that the total number does not cause an insert query which is too large. 100-200 is optimal
 
+Debug logging in elasticsearch uses print_r and the drupal log reports pages dont want to show this. If you need to debug with this you are best looking directly at the watchdog table or using drupal console
+
+# Mapping
+
+Type field should be mapped as a simple reference and not an object due to their representation in entities
 
 # Supports
 
