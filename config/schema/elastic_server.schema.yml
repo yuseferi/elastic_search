@@ -20,6 +20,12 @@ elastic_search.server:
           type: integer
         index_batch_size:
           type: integer
+        queue_update:
+          type: boolean
+        queue_insert:
+          type: boolean
+        queue_delete:
+          type: boolean
         developer:
           type: mapping
           mapping:

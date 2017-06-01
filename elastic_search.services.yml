@@ -70,6 +70,12 @@ services:
     factory: ['Drupal\elastic_search\Elastic\BackReferenceProcessor', create]
     arguments: ['@service_container']
 
+  elastic_search.document.renderer:
+    class: Drupal\elastic_search\Elastic\ElasticPayloadRenderer
+    factory: ['Drupal\elastic_search\Elastic\ElasticPayloadRenderer', create]
+    arguments: ['@service_container']
+
+
 ######################################
 # EVENT SUBSCRIBERS
 ######################################

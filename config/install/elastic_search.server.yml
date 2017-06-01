@@ -10,6 +10,9 @@ advanced:
   pause: 0
   batch_size: 100
   index_batch_size: 1
+  queue_update: 1
+  queue_insert: 0
+  queue_delete: 1
   active: 0
   developer:
     active: 0

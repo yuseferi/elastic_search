@@ -130,6 +130,27 @@ class ServerForm extends ConfigFormBase {
       '#description'   => $this->t('How many indices to CRUD per batch, low is usually better'),
     ];
 
+    $form['advanced']['queue_update'] = [
+      '#type'          => 'checkbox',
+      '#title'         => $this->t('Queue updated documents'),
+      '#default_value' => $this->configuration->get('advanced.queue_update'),
+      '#description'   => $this->t('If true queue all updated documents for indexing instead of pushing at save time. Defaults to true. Because of the nature of elasticsearch and how referenced entities are dealt with a single save has the potential to update a large number of nodes at once. For example updating a taxonomy term will update all documents that reference this term. To prevent timeouts it is recommended to leave this setting on'),
+    ];
+
+    $form['advanced']['queue_insert'] = [
+      '#type'          => 'checkbox',
+      '#title'         => $this->t('Queue new documents'),
+      '#default_value' => $this->configuration->get('advanced.queue_insert'),
+      '#description'   => $this->t('If true queue node insert actions for indexing. Defaults to false. As it is assumed that a new document cannot have an existing backreference in a document this action always results in only a single object being pushed to elastic search and therefore is usually safe to do at save time. However if your documents contain a large number of references and/or a deep recursion depth it may be prudent to active this'),
+    ];
+
+    $form['advanced']['queue_delete'] = [
+      '#type'          => 'checkbox',
+      '#title'         => $this->t('Queue delete documents'),
+      '#default_value' => $this->configuration->get('advanced.queue_delete'),
+      '#description'   => $this->t('If true queue all deleted documents for removal instead of actioning at local delete time. Defaults to true. Because of the nature of elasticsearch and how referenced entities are dealt with a single save has the potential to update a large number of nodes at once. For example updating a taxonomy term will update all documents that reference this term. To prevent timeouts it is recommended to leave this setting on'),
+    ];
+
     $form['advanced']['developer'] = [
       '#tree'        => TRUE,
       '#type'        => 'details',
@@ -235,6 +256,9 @@ class ServerForm extends ConfigFormBase {
            ->set('advanced.pause', $form_state->getValue(['advanced', 'pause']))
            ->set('advanced.batch_size', $form_state->getValue(['advanced', 'batch_size']))
            ->set('advanced.index_batch_size', $form_state->getValue(['advanced', 'index_batch_size']))
+           ->set('advanced.queue_update', $form_state->getValue(['advanced', 'queue_update']))
+           ->set('advanced.queue_insert', $form_state->getValue(['advanced', 'queue_insert']))
+           ->set('advanced.queue_delete', $form_state->getValue(['advanced', 'queue_delete']))
            ->save();
 
     //if the prefix has changed mark the indices as needing an update

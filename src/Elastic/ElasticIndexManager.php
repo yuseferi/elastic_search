@@ -156,7 +156,7 @@ class ElasticIndexManager implements ContainerInjectionInterface {
    */
   public function deleteIndexOnServer(ElasticIndexInterface $elasticIndex): FutureArray {
     /** @var \GuzzleHttp\Ring\Future\FutureArray $result */
-    $future = $this->queueIndexForDeletion($elasticIndex);
+    $future = $this->deleteRemoteIndex($elasticIndex);
     $this->markIndicesForServerUpdate([$elasticIndex]);
     $state = $future['acknowledged']; //this forces the deletion call to be resolved
     return $future;//this is actually an array at this point due to the resolution
@@ -169,7 +169,7 @@ class ElasticIndexManager implements ContainerInjectionInterface {
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function queueIndexForDeletion(ElasticIndexInterface $elasticIndex): FutureArray {
+  public function deleteRemoteIndex(ElasticIndexInterface $elasticIndex): FutureArray {
     /** @var \GuzzleHttp\Ring\Future\FutureArray $result */
     $result = $this->client->indices()
                            ->delete([
@@ -222,6 +222,7 @@ class ElasticIndexManager implements ContainerInjectionInterface {
    * @param string $type
    */
   public function clearIndexDocuments(string $indexId, string $type) {
+    //TODO - should hand off to document manager
     $search = new Search();
     $matchAllQuery = new MatchAllQuery();
     $search->addQuery($matchAllQuery);
@@ -234,28 +235,6 @@ class ElasticIndexManager implements ContainerInjectionInterface {
     //TODO - response handling
   }
 
-  /**
-   * @param \Drupal\elastic_search\Entity\ElasticIndexInterface $elasticIndex
-   *
-   * @throws \Exception
-   */
-  public function documentUpdate(ElasticIndexInterface $elasticIndex, array $entities) {
-    $payloads = ['body' => []];
-    /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $entity */
-    foreach ($entities as $entity) {
-      try {
-        $translation = $entity->getTranslation($elasticIndex->getIndexLanguage());
-      } catch (\Throwable $t) {
-        $translation = $entity;
-      }
-      $payload = $this->documentManager->buildMappingPayload($translation);
-      $payloads['body'] = array_merge($payloads['body'], $payload['body']);
-      $payloads['client'] = ['timeout' => 5, 'future' => 'lazy'];
-    }
-    if (!empty($payloads['body'])) {
-      $this->documentManager->sendDocuments($payloads);
-    }
-  }
 
   /**
    * @param \Drupal\elastic_search\Entity\ElasticIndexInterface $elasticIndex

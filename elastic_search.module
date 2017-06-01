@@ -8,7 +8,7 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\elastic_search\Exception\ElasticDocumentBuilderSkipException;
+use Drupal\elastic_search\Elastic\ElasticDocumentManager;
 use Drupal\elastic_search\Utility\ElasticTokenHelper;
 
 /**
@@ -35,8 +35,9 @@ function elastic_search_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_entity_type_alter().
  */
 function elastic_search_entity_type_alter(array &$entity_types) {
+
   foreach ($entity_types as $entity_type_id => $entity_type) {
-    if (_elastic_search_is_internal_type($entity_type_id)) {
+    if (ElasticDocumentManager::isElasticType($entity_type_id)) {
       $entity_type->setLinkTemplate('elastic-mapping-admin',
                                     "/admin/config/search/elastic/fem/{$entity_type_id}__{{$entity_type_id}}/edit");
       continue;
@@ -54,7 +55,6 @@ function elastic_search_entity_type_alter(array &$entity_types) {
 function elastic_search_fieldable_entity_map_update(EntityInterface $entity) {
   $manager = \Drupal::getContainer()->get('elastic_search.indices.manager');
   $manager->markIndexForServerUpdateFromFieldMap($entity);
-  //TODO - add some kind of message if it fails
 }
 
 /**
@@ -68,28 +68,6 @@ function elastic_search_fieldable_entity_map_insert(EntityInterface $entity) {
 }
 
 /**
- * @param \Drupal\Core\Entity\EntityInterface $entity
- *
- * @return bool
- */
-function _elastic_search_type_skip(EntityInterface $entity) {
-  $type = $entity->getEntityTypeId();
-  return !_elastic_search_is_internal_type($type);
-
-}
-
-/**
- * True is the type is to do with elastic, and therefore should never be indexed
- *
- * @param string $type
- *
- * @return bool
- */
-function _elastic_search_is_internal_type(string $type) {
-  return ($type === 'elastic_analyzer' || $type === 'fieldable_entity_map' || $type === 'elastic_index');
-}
-
-/**
  * Implements hook_entity_insert().
  *
  * This does no checking for back references since it stands to reason that a newly created entity should not already
@@ -97,129 +75,26 @@ function _elastic_search_is_internal_type(string $type) {
  * (migration situations can complicate this, YMMV)
  */
 function elastic_search_entity_insert(EntityInterface $entity) {
-
-  if (!_elastic_search_type_skip($entity)) {
-    return;
-  }
-
-  $documentManager = \Drupal::getContainer()
-                            ->get('elastic_search.document.manager');
-  try {
-    $payloads = $documentManager->buildMappingPayload($entity);
-    $documentManager->sendDocuments($payloads);
-    \Drupal::logger('elastic.mapping.document')
-           ->info('Inserted document @id', ['@id' => $entity->id()]);
-  } catch (ElasticDocumentBuilderSkipException $e) {
-    \Drupal::logger('elastic.mapping.document')
-           ->notice('Skipped inserting document: ' .
-                    json_encode($e->getMessage()));
-  } catch (\Exception $e) {
-    \Drupal::logger('elastic.mapping.document')
-           ->critical('Could not insert document: ' .
-                      json_encode($e->getMessage()));
-  }
+  $dm = \Drupal::getContainer()->get('elastic_search.document.manager');
+  $dm->insertAction($entity);
 }
 
 /**
  * Implements hook_entity_update().
  *
- * Deals with recursion of items to stop circular flattening actions
- *
- * @param \Drupal\Core\Entity\EntityInterface $entity
- *
- * @internal param int $currentDepth
- * @internal param int $maxDepth
+ * Queues or pushes a document and its back references to elastic
  */
 function elastic_search_entity_update(EntityInterface $entity) {
-
-  if (!_elastic_search_type_skip($entity)) {
-    return;
-  }
-
-  _elastic_search_entity_update($entity, []);
-
-}
-
-/**
- * @param \Drupal\Core\Entity\EntityInterface $entity
- * @param array                               $entityList
- */
-function _elastic_search_entity_update(EntityInterface $entity, array $entityList = []) {
-
-  if (in_array($entity->uuid(), $entityList, FALSE)) {
-    //stop circular updates
-    return;
-  }
-
-  $entityList[] = $entity->uuid();
-
-  try {
-    $documentManager = \Drupal::getContainer()
-                              ->get('elastic_search.document.manager');
-    $payloads = $documentManager->buildMappingPayload($entity);
-    $documentManager->sendDocuments($payloads);
-    \Drupal::logger('elastic.mapping.document')
-           ->info('Updated document @id', ['@id' => $entity->id()]);
-
-    //Process backreferences
-    _elastic_search_update_backreferences($entity, $entityList);
-  } catch (ElasticDocumentBuilderSkipException $e) {
-    \Drupal::logger('elastic.mapping.document')
-           ->notice('Skipped inserting document: ' .
-                    json_encode($e->getMessage()));
-  } catch (\Exception $e) {
-    \Drupal::logger('elastic.mapping.document')
-           ->critical('Could not insert document: ' .
-                      json_encode($e->getMessage()));
-  }
+  $dm = \Drupal::getContainer()->get('elastic_search.document.manager');
+  $dm->updateAction($entity);
 }
 
 /**
  * Implements hook_entity_delete().
  */
 function elastic_search_entity_delete(EntityInterface $entity) {
-
-  if (!_elastic_search_type_skip($entity)) {
-    return;
-  }
-
-  $entityList[] = $entity->uuid();
-
-  $documentManager = \Drupal::getContainer()
-                            ->get('elastic_search.document.manager');
-  try {
-    $documentManager->deleteEntity($entity);
-    \Drupal::logger('elastic.mapping.document')
-           ->info('Deleted document @id', ['@id' => $entity->id()]);
-    _elastic_search_update_backreferences($entity, $entityList);
-  } catch (\Exception $e) {
-    \Drupal::logger('elastic.mapping.document')
-           ->warning('Could not delete document: ' .
-                     json_encode($e->getMessage()));
-  }
-}
-
-/**
- * @param \Drupal\Core\Entity\EntityInterface $entity
- * @param array                               $entityList
- */
-function _elastic_search_update_backreferences(EntityInterface $entity, array &$entityList) {
-  $br = \Drupal::getContainer()->get('elastic_search.backreference_processor');
-  /** @var \Drupal\field\Entity\FieldConfig[] $rfs */
-  $rfs = $br->referencingFields($entity->getEntityTypeId(), $entity->bundle());
-  foreach ($rfs as $rf) {
-    $refEnts = $br->loadReferencingEntities($rf, $entity->id());
-    /** @var Drupal\Core\Entity\EntityInterface $refEnt */
-    foreach ($refEnts as $refEnt) {
-      //Make sure we have the correct translation
-      try {
-        $translation = $refEnt->getTranslation($entity->language()->getId());
-      } catch (\Throwable $t) {
-        $translation = $refEnt;
-      }
-      _elastic_search_entity_update($translation, $entityList);//Call update on the referenced node
-    }
-  }
+  $dm = \Drupal::getContainer()->get('elastic_search.document.manager');
+  $dm->deleteAction($entity);
 }
 
 /**

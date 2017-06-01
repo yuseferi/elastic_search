@@ -160,7 +160,7 @@ class Object extends FieldMapperBase {
         $originalId = FieldableEntityMap::getMachineName($originalEntity->getEntityTypeId(),
                                                          $originalEntity->bundle());
         $originalData = $originalEntity->toArray();
-        $objectMapping = $this->documentManager->buildDataFromMap($originalId, $originalData);
+        $objectMapping = $this->documentManager->getPayloadRenderer()->buildDataFromMap($originalId, $originalData);
         if (!empty($objectMapping)) {
           $objectMappings[] = $objectMapping;
         } else {

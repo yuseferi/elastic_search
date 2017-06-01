@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Class IndexController.
+ * Controller containing batch callbacks related to Index management
  *
  * @package Drupal\elastic_search\Controller
  */
@@ -211,26 +212,7 @@ class IndexController extends ControllerBase {
     }
     $chunks = array_chunk($elasticIndices, $this->indexChunkSize);
     return $this->executeBatch($chunks,
-                               '\Drupal\elastic_search\Controller\IndexController::processDeleteBatch',
-                               '\Drupal\elastic_search\Controller\IndexController::finishBatch',
-                               'deletion');
-
-  }
-
-  /**
-   * @param ElasticIndexInterface[] $elasticIndices
-   *
-   * @return null|\Symfony\Component\HttpFoundation\RedirectResponse
-   */
-  public function deleteIndicesLocal(array $elasticIndices = []) {
-
-    if (empty($elasticIndices)) {
-      $elasticIndices = $this->indexStorage->loadMultiple();
-    }
-    //arbitrary value
-    $chunks = array_chunk($elasticIndices, 50);
-    return $this->executeBatch($chunks,
-                               '\Drupal\elastic_search\Controller\IndexController::processDeleteLocalBatch',
+                               '\Drupal\elastic_search\Controller\IndexController::processDeleteIndexBatch',
                                '\Drupal\elastic_search\Controller\IndexController::finishBatch',
                                'deletion');
 
@@ -242,7 +224,7 @@ class IndexController extends ControllerBase {
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public static function processDeleteBatch(array $elasticIndices, array &$context) {
+  public static function processDeleteIndexBatch(array $elasticIndices, array &$context) {
 
     if (!array_key_exists('progress', $context['sandbox'])) {
       $context['sandbox']['progress'] = 0;
@@ -262,7 +244,7 @@ class IndexController extends ControllerBase {
         'id'            => $index->id(),
       ];
 
-      $future = $indexManager->queueIndexForDeletion($index);
+      $future = $indexManager->deleteRemoteIndex($index);
       try {
         // access future's values, causing resolution if necessary
         if ($future['acknowledged']) {
@@ -295,6 +277,25 @@ class IndexController extends ControllerBase {
     if ($serverConfig->get('advanced.pause') !== NULL) {
       sleep((int) $serverConfig->get('advanced.pause'));
     }
+  }
+
+  /**
+   * @param ElasticIndexInterface[] $elasticIndices
+   *
+   * @return null|\Symfony\Component\HttpFoundation\RedirectResponse
+   */
+  public function deleteIndicesLocal(array $elasticIndices = []) {
+
+    if (empty($elasticIndices)) {
+      $elasticIndices = $this->indexStorage->loadMultiple();
+    }
+    //arbitrary value
+    $chunks = array_chunk($elasticIndices, 50);
+    return $this->executeBatch($chunks,
+                               '\Drupal\elastic_search\Controller\IndexController::processDeleteLocalBatch',
+                               '\Drupal\elastic_search\Controller\IndexController::finishBatch',
+                               'deletion');
+
   }
 
   /**
@@ -505,11 +506,11 @@ class IndexController extends ControllerBase {
   public static function processDocumentIndexBatch(array $entities, array &$context) {
 
     //static function so cannot use DI :'(
-    $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
+    $documentManager = \Drupal::getContainer()->get('elastic_search.document.manager');
 
     $index = array_shift($entities);
 
-    $indexManager->documentUpdate($index, $entities);
+    $documentManager->updateDocumentsByLanguage($entities, $index->getIndexLanguage());
     $context['results'][] = $index;
     //Optional pause
     $serverConfig = \Drupal::config('elastic_search.server');
