@@ -28,7 +28,12 @@ Because batches involve writing to the database you need to be careful that the 
 
 Debug logging in elasticsearch uses print_r and the drupal log reports pages dont want to show this. If you need to debug with this you are best looking directly at the watchdog table or using drupal console
 
+
 # Mapping
+
+All FEM, Indices and Analyzers (tbd) are stored in config, which means you can easily ship your cluster config and configure everything without the ui
+
+## Notes
 
 Type field should be mapped as a simple reference and not an object due to their representation in entities
 
@@ -36,6 +41,11 @@ Type field should be mapped as a simple reference and not an object due to their
 
 * Multifield mapping
     https://www.elastic.co/guide/en/elasticsearch/guide/2.x/most-fields.html#_multifield_mapping
+
+# Unsupported
+
+Custom analyzers - the framework for it is there but the rendering is not yet implemented
+
 
 ## Testing
 
