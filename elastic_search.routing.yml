@@ -148,6 +148,20 @@ elastic_search.controller.index.delete:
       elastic_index:
         type: 'entity:elastic_index'
 
+elastic_search.controller.index.delete_remote:
+  path: '/admin/config/search/elastic/indices/{elastic_index}/delete_remote'
+  defaults:
+    _controller: '\Drupal\elastic_search\Controller\IndexController::deleteRemoteIndex'
+    _title: 'Delete Remote'
+  requirements:
+    _permission: 'administer elasticsearch'
+  options:
+    _admin_route: TRUE
+    parameters:
+      elastic_index:
+        type: 'entity:elastic_index'
+
+
 elastic_search.controller.index.clear:
   path: '/admin/config/search/elastic/indices/{elastic_index}/clear'
   defaults:

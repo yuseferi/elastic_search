@@ -280,6 +280,71 @@ class IndexController extends ControllerBase {
   }
 
   /**
+   * @param \Drupal\elastic_search\Entity\ElasticIndexInterface $elastic_index
+   *
+   * @return null|\Symfony\Component\HttpFoundation\RedirectResponse
+   */
+  public function deleteRemoteIndex(ElasticIndexInterface $elastic_index) {
+
+    return $this->executeBatch([[$elastic_index]],
+                               '\Drupal\elastic_search\Controller\IndexController::processDeleteIndexRemoteBatch',
+                               '\Drupal\elastic_search\Controller\IndexController::finishBatch',
+                               'deletion');
+  }
+
+  /**
+   * @param ElasticIndexInterface[] $elasticIndices
+   * @param array                   $context
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public static function processDeleteIndexRemoteBatch(array $elasticIndices, array &$context) {
+
+    if (!array_key_exists('progress', $context['sandbox'])) {
+      $context['sandbox']['progress'] = 0;
+    }
+
+    //static function so cannot use DI :'(
+    $indexManager = \Drupal::getContainer()->get('elastic_search.indices.manager');
+
+    //Process the indices
+    /** @var ElasticIndexInterface $index */
+    foreach ($elasticIndices as $index) {
+      $result = [
+        'index_status'  => 'available',
+        'entity_status' => 'available',
+        'id'            => $index->id(),
+      ];
+
+      $future = $indexManager->deleteRemoteIndex($index);
+      try {
+        // access future's values, causing resolution if necessary
+        if ($future['acknowledged']) {
+          $result['index_status'] = 'deleted';
+        }
+      } catch (\Throwable $t) {
+        $error = json_decode($t->getMessage());
+        if ($error->status === 404) {
+          $result['index_status'] = '404';
+        } else {
+          //If it some other kind of error when we try to delete we should log it and we will not delete the local index
+          $result['index_status'] = $t->getMessage();
+        }
+      }
+      drupal_set_message($index->id() . ' Status: ' . $result['index_status'] . ' Entity Status: ' .
+                         $result['entity_status']);
+      $context['sandbox']['progress']++;
+      $context['results'][] = $result;
+    }
+
+    //Optional pause
+    $serverConfig = \Drupal::config('elastic_search.server');
+    if ($serverConfig->get('advanced.pause') !== NULL) {
+      sleep((int) $serverConfig->get('advanced.pause'));
+    }
+  }
+
+  /**
    * @param ElasticIndexInterface[] $elasticIndices
    *
    * @return null|\Symfony\Component\HttpFoundation\RedirectResponse

@@ -189,6 +189,13 @@ class ElasticIndexListBuilder extends ConfigEntityListBuilder {
                                  ['elastic_index' => $entity->id()]),
     ];
 
+    $operations['deleteRemote'] = [
+      'title'  => $this->t('Delete remote'),
+      'weight' => 4,
+      'url'    => Url::fromRoute('elastic_search.controller.index.delete_remote',
+                                 ['elastic_index' => $entity->id()]),
+    ];
+
     $operations['clearServer'] = [
       'title'  => $this->t('Server document clear'),
       'weight' => 3,
