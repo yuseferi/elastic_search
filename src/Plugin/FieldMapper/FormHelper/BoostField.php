@@ -32,11 +32,10 @@ trait BoostField {
       $this->getBoostFieldId() => [
         '#type'          => 'number',
         '#title'         => $this->t('Boost Value'),
-        '#description'   => $this->t('A value between 0.0 and 1.0'),
+        '#description'   => $this->t('A value equal or higher than 0 in the format 1.00'),
         '#default_value' => $default,
         '#min'           => 0,
-        '#max'           => 1.0,
-        '#step'          => 0.1,
+        '#step'          => 0.01,
       ],
     ];
   }
