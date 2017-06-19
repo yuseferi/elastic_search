@@ -96,12 +96,32 @@ abstract class ElasticEntityQueueBase extends QueueWorkerBase implements Contain
    */
   public static function hydrateItems(array $data) {
 
+    /** @var LoggerInterface $logger */
+    $logger = \Drupal::logger("elastic_queue");
+    /** @var \Drupal\Core\Entity\EntityTypeManagerInterface $etm */
+    $etm = \Drupal::entityTypeManager();
+
     //hydrate the entities
     $hydrated = [];
     foreach ($data as $datum) {
-      /** @var \Drupal\Core\Entity\EntityInterface $entity */
-      $entity = \Drupal::service('entity.repository')->loadEntityByUuid($datum->getEntityType(), $datum->getUuid());
+
+      //Not happy that we have to load by NID here, but if we load by UUID unpublished nodes ALWAYS fail to be returned
+      $entity = $etm->getStorage($datum->getEntityType())->load($datum->getId());
+
+      if ($entity === NULL) {
+        //Avoid any potential errors if the entity cannot be loaded
+        $logger->warning("Could not load entity @uuid @id, hydration result was null",
+                         ['@id' => $datum->getId(), '@uuid' => $datum->getUuid()]);
+        continue;
+      }
+      if ($entity->uuid() !== $datum->getUuid()) {
+        $logger->error("CRITICAL ERROR: ENTITY UUID MISMATCH @uuid @id, CANNOT PROCESS HYDRATION",
+                       ['@id' => $datum->getId(), '@uuid' => $datum->getUuid()]);
+        continue;
+      }
+
       try {
+        //Always possible that translations are not enabled
         $hydrated[] = $entity->getTranslation($datum->getLanguage());
       } catch (\Throwable $t) {
         $hydrated[] = $entity;
