@@ -7,6 +7,13 @@ elastic_search.server:
       type: string
     port:
       type: string
+    auth:
+      type: mapping
+      mapping:
+        username:
+          type: string
+        password:
+          type: string
     kibana:
       type: string
     index_prefix:
@@ -26,6 +33,8 @@ elastic_search.server:
           type: boolean
         queue_delete:
           type: boolean
+        active:
+          type: boolean
         developer:
           type: mapping
           mapping:
@@ -37,9 +46,9 @@ elastic_search.server:
           type: mapping
           mapping:
             active:
-              type: bool
+              type: boolean
             die_hard:
-              type: bool
+              type: boolean
 
 
 
