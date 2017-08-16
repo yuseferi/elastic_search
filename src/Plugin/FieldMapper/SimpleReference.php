@@ -12,9 +12,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\elastic_search\Annotation\FieldMapper;
 use Drupal\elastic_search\Elastic\ElasticDocumentManager;
-use Drupal\elastic_search\Entity\FieldableEntityMap;
 use Drupal\elastic_search\Exception\FieldMapperFlattenSkipException;
-use Drupal\elastic_search\Plugin\FieldMapper\FormHelper\IncludeInAllField;
 use Drupal\elastic_search\Plugin\FieldMapperBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -129,10 +127,38 @@ class SimpleReference extends FieldMapperBase {
   public function normalizeFieldData(string $id,
                                      array $data,
                                      array $fieldMappingData) {
-    if (empty($data) || !array_key_exists('target_id', $data[0])) {
+
+    if (!array_key_exists('nested', $fieldMappingData) || (int) $fieldMappingData['nested'] !== 1) {
+      //If not nested just return the value
+      return !empty($data) ? $this->testTargetData($data[0]) : NULL;
+    }
+
+    //If nested then we need to pass back an array of values
+    $out = [];
+    foreach ($data as $datum) {
+      if (!empty($datum)) {
+        try {
+          $out[] = $this->testTargetData($datum);
+        } catch (\Throwable $t) {
+          continue;
+        }
+      }
+    }
+    return !empty($out) ? $out : NULL;
+  }
+
+  /**
+   * @param array $data
+   *
+   * @return mixed
+   *
+   * @throws \Drupal\elastic_search\Exception\FieldMapperFlattenSkipException
+   */
+  private function testTargetData($data) {
+    if (!array_key_exists('target_id', $data)) {
       throw new FieldMapperFlattenSkipException();
     }
-    return $data[0]['target_id'];
+    return $data['target_id'];
   }
 
 }
