@@ -335,7 +335,7 @@ class FieldableEntityMapForm extends EntityForm {
       '#default_value' => $this->isNested($bundle_field,
                                           $id,
                                           $form),
-      '#access'        => (bool) $config->get('advanced.active'),
+      '#access'        => (bool) $config->get('advanced.developer.active'),
       '#disabled'      => (bool) $form_state->getValue('dynamic_mapping',
                                                        FALSE),
     ];
@@ -435,7 +435,7 @@ class FieldableEntityMapForm extends EntityForm {
       }
     }
 
-    return $stateNested && $cardinality;
+    return ($stateNested && $cardinality) || $cardinality;
   }
 
   /**
