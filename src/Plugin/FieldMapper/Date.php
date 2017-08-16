@@ -45,7 +45,7 @@ class Date extends FieldMapperBase {
    * @return array
    */
   public function getSupportedTypes() {
-    return ['date', 'created', 'changed', 'timestamp'];
+    return ['date', 'datetime', 'created', 'changed', 'timestamp'];
   }
 
   /**
@@ -90,7 +90,7 @@ class Date extends FieldMapperBase {
                                                 ??
                                                 $this->getNullValueFieldId()),
                        $this->getStoreField($defaults[$this->getStoreFieldId()]
-                                            ??$this->getStoreFieldDefault()));
+                                            ?? $this->getStoreFieldDefault()));
   }
 
   /**
