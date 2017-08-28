@@ -134,7 +134,8 @@ class ElasticPayloadRenderer implements ElasticPayloadRendererInterface, Contain
     /** @var ElasticIndexInterface[] $indices */
     $indices = $this->getIndices($fem->id(), $language);
     if (empty($indices)) {
-      throw new IndexNotFoundException('No Indices were found for processing by Elastic Document Manager');
+      throw new IndexNotFoundException('No Indices were found for processing by Elastic Document Manager. FEM:' .
+                                       $fem->id() . ' Language:' . $language);
     }
 
     return $this->createDeletePayload($indices, $uuid);
