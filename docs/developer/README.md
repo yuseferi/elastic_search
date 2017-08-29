@@ -1,0 +1,55 @@
+# Developers Guide
+
+The architecture of the elastic_search plugin is fairly complex, but due to the modular approach of drupal extending it is quick and easy.
+The Mapping section of the developer documentation deals with implementing these extension.
+
+## Local Development Environment
+
+If you have docker set up then development is very simple. (If you use OSX we would advise using [DM](https://github.com/twhiston/dm) to set up your local environment with faster NFS shares and XDebug config for docker and phpstorm)
+
+`docker-compose up`
+This will start up an ephemeral drupal install where the site and database are stored only in the container. This environment is analogous to the environment run by the CI when tests are execute on a GitHub pull request.
+The username and pass for the admin user can be set via the docker-compose.yml file using the environmental variables `DRUPAL_ACCOUNT_NAME` and `DRUPAL_ACCOUNT_PASS` , the default username is `admin`
+
+The current entrypoint is `/opt/app-root/scripts/debug.sh`. This script is provided by the drupal_module_tester container and by default performs the following actions every time it is started:
+
+1. Links your local module code to the container as a volume
+2. Runs `composer install` in your module root
+3. Tries to install drupal 8 (if already installed due to active db container this will simply output an error and continue)
+4. Tries to install your module (if already installed will output an error and continue)
+
+To skip steps 2-4 add the following configuration to your docker-compose.yml file
+```
+environment:
+      - BOOTSTRAP=false
+```
+Be aware however that if you destroy the container you will need to set this to true for the first container start so that drupal is correctly installed.
+
+To reinstall drupal and your module simply `docker-compose down && docker-compose up`
+
+You may wish to link the database container path `/var/lib/mysql` to a local volume if you plan to do extended development on the module.
+See [Docker Hub MariaDB](https://hub.docker.com/_/mariadb/) for more information about configuration values.
+
+TODO - Add elasticsearch to this setup
+
+
+## Entity Relation Overview
+
+The elastic_search plugin introduces a number of entities that are used to compose the final index output for Elastic.
+This structure is inherently recursive as a fieldable entity map can refer to another entity type, which in turn must have a fieldable entity map.
+As this can be painful due to the need to create users, paragraphs, node types etc... maps, the plugin offers the map generation feature. Read more about this in the user guide
+TODO - Add link
+
+Drupal Entity types have a 1:1 relationship to a FieldableEntityMap, which describes how each of its fields are mapped in elasticsearch. This mapping many optionally contain references to other drupal entity type, which will be either a simple reference (id) or inline mapping depending on settings.
+FieldableEntityMaps have a 1:N relationship with ElasticIndex entities. This is because in multilingual environments to take advantage of elastic's language analyzers we need to seperate documents by language, which requires seperate indices.
+ElasticIndex entities have a 1:1 relationship with Indices on an elastic search server.
+
+The structure is described below.
+
+![alt text](./../images/Overview.png "Overview")
+
+Currently the only supported analyzers are the ones inbuilt in elastic search as custom analyzer generation is not yet supported in the Cartographer class.
+
+## Process
+
+TODO - Blackfire diagram of process execution

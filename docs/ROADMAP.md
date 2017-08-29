@@ -1,5 +1,8 @@
 # Roadmap
 
+Current new feature roadmap for Elastic Search module.
+Subject to change
+
 ## 1.1
 
 * Better handling of analyzer language handling
@@ -10,8 +13,7 @@
 
 ### Indices
 
-* Update mappings without index deletion
-
+* Update mappings without index deletion (push, copy, delete, alias)
 
 # Search
 

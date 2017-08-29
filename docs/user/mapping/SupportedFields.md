@@ -1,5 +1,7 @@
 # Supported Fields
 
+Currently (29/08/17) the full set of elastic search fields are supported by this plugin. The following list shows what, if any, drupal field type they are mapped to.
+
 ### string
 text and keyword
 ### Numeric datatypes
