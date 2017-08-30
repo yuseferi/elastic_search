@@ -1,5 +1,0 @@
-services:
-  mymodule.mymodule_subscriber:
-    class: \Drupal\elastic_debug_tools\RoutePrintSubscriber
-    tags:
-      - { name: 'event_subscriber' }

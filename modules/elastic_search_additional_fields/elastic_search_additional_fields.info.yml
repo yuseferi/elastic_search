@@ -1,7 +1,0 @@
-name: elastic_search_additional_fields
-type: module
-description: Additional field type plugins for common Drupal 8 field types.
-core: 8.x
-package: Search
-dependencies:
-  - elastic_search

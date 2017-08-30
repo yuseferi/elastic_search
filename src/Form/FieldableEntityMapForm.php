@@ -46,7 +46,7 @@ class FieldableEntityMapForm extends EntityForm {
    *
    * @var \Drupal\elastic_search\Plugin\EntityTypeDefinitionsManager
    */
-  protected $fieldDefinitionsManager;
+  protected $entityTypeDefinitionsManager;
 
   /**
    * Psr Logging Interface for errors
@@ -65,18 +65,18 @@ class FieldableEntityMapForm extends EntityForm {
    *
    * @param \Drupal\elastic_search\Utility\TypeMapper                  $typeMapper
    * @param \Drupal\Core\Config\ConfigFactoryInterface                 $configFactory
-   * @param \Drupal\elastic_search\Plugin\EntityTypeDefinitionsManager $fieldDefinitionsManager
+   * @param \Drupal\elastic_search\Plugin\EntityTypeDefinitionsManager $entityTypeDefinitionsManager
    * @param \Psr\Log\LoggerInterface                                   $logger
    * @param \Drupal\Core\Session\AccountProxyInterface                 $user
    */
   public function __construct(TypeMapper $typeMapper,
                               ConfigFactoryInterface $configFactory,
-                              EntityTypeDefinitionsManager $fieldDefinitionsManager,
+                              EntityTypeDefinitionsManager $entityTypeDefinitionsManager,
                               LoggerInterface $logger,
                               AccountProxyInterface $user) {
     $this->typeMapper = $typeMapper;
     $this->configFactory = $configFactory;
-    $this->fieldDefinitionsManager = $fieldDefinitionsManager;
+    $this->entityTypeDefinitionsManager = $entityTypeDefinitionsManager;
     $this->logger = $logger;
     $this->user = $user;
   }
@@ -106,7 +106,7 @@ class FieldableEntityMapForm extends EntityForm {
     $form = parent::form($form, $form_state);
 
     /** @var \Drupal\elastic_search\Entity\FieldableEntityMapInterface $entity */
-    $entity =  $this->getEntity();
+    $entity = $this->getEntity();
 
     $idDetails = $entity->getIdDetails();
 
@@ -253,11 +253,11 @@ class FieldableEntityMapForm extends EntityForm {
    */
   private function getFieldsFromFieldDefinitionPlugin(IdDetails $idDetails): array {
     try {
-      if ($this->fieldDefinitionsManager->hasDefinition($idDetails->getEntity())) {
-        $fieldDefinitionPlugin = $this->fieldDefinitionsManager->createInstance($idDetails->getEntity());
+      if ($this->entityTypeDefinitionsManager->hasDefinition($idDetails->getEntity())) {
+        $fieldDefinitionPlugin = $this->entityTypeDefinitionsManager->createInstance($idDetails->getEntity());
       } else {
         /** @var EntityTypeDefinitionsInterface $fieldDefinitionPlugin */
-        $fieldDefinitionPlugin = $this->fieldDefinitionsManager->createInstance('generic');
+        $fieldDefinitionPlugin = $this->entityTypeDefinitionsManager->createInstance('generic');
       }
 
       $fields = $fieldDefinitionPlugin->getFieldDefinitions($idDetails->getEntity(),
