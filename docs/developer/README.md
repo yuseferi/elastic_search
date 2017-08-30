@@ -24,9 +24,10 @@ The current entrypoint is `/opt/app-root/scripts/debug.sh`. This script is provi
 2. Runs `composer install` in your module root
 3. Tries to install drupal 8 (if already installed due to active db container this will simply output an error and continue)
 4. Tries to install your module (if already installed will output an error and continue)
-5. Installs a default config to link to the local elastic instance
+5. Installs the seven theme and sets it as default (for a nicer development experience compared to the ci build)
+6. Installs a default config to link to the local elastic instance
 
-To skip steps 2-4 add the following configuration to your docker-compose.yml file
+To skip steps 2-5 add the following configuration to your docker-compose.yml file
 ```
 environment:
       - BOOTSTRAP=false

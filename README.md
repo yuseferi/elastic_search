@@ -100,4 +100,4 @@ Current Maintainers:
 
 This project has been sponsored by:
 
-    * [PwC's Experience Center Zurich](http://digital.pwc.ch/en/)
+* [PwC's Experience Center Zurich](http://digital.pwc.ch/en/)

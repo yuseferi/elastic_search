@@ -5,6 +5,7 @@ source /opt/app-root/scripts/util/hostname.sh
 if [ "$BOOTSTRAP" != "false" ]; then
     source /opt/app-root/scripts/util/bootstrap.sh
     ../vendor/bin/drupal module:install config
+    ../vendor/bin/drupal theme:install seven --set-default
 fi
 
 if [ "$DEFAULT_CONFIG" != "false" ]; then
