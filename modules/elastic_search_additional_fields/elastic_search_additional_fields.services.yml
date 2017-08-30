@@ -1,5 +1,0 @@
-services:
-  elastic_search.subscriber.field_mapper.soundcloud:
-    class: Drupal\elastic_search_additional_fields\EventSubscriber\FieldMapper\SoundcloudField
-    tags:
-      - { name: event_subscriber }
