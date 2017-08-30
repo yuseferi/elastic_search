@@ -2,6 +2,7 @@
 [ ![Codeship Status for ibrows/elastic_search](https://app.codeship.com/projects/3ca0ef00-22a3-0135-eb40-52028c1190b7/status?branch=master)](https://app.codeship.com/projects/221747)
 [ ![Codacy Badge](https://api.codacy.com/project/badge/Grade/d3396f1fe8104eac9a376952d37506a9)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ibrows/elastic_search&amp;utm_campaign=Badge_Grade)
 
+
 INTRODUCTION
 ------------
 
@@ -22,6 +23,7 @@ This means:
 This module is only for mapping of content with elastic search. You will need additional modules to display result content, such as [Elastic Search View](https://github.com/ibrows/elastic_search_view).
 This module could also be integrated with [Elastic Search Helper](https://www.drupal.org/project/elasticsearch_helper) as it decouples the mapping and indexing of documents from their retrieval.
 
+
 REQUIREMENTS
 ------------
 
@@ -29,12 +31,12 @@ REQUIREMENTS
 * Elastic Search >= 5.0.0
 * Ace code editor. Add this to your libraries/ folder so that /libraries/ace/src-min-noconflict/ace.js is available
 
+
 INSTALLATION
 ------------
 
 * Install as you would [normally install a contributed Drupal 8 module](https://drupal.org/documentation/install/modules-themes/modules-8) .
-
-* Install [Ace Code Editor](https://ace.c9.io/) to your libraries/ folder so that /libraries/ace/src-min-noconflict/ace.js is available
+* Install [Ace Code Editor](https://ace.c9.io/) to your libraries/ folder so that libraries/ace/src-min-noconflict/ace.js is available
 
 
 CONFIGURATION
@@ -52,20 +54,18 @@ Because batches involve writing to the database you need to be careful that the 
 
 Debug logging in elasticsearch uses print_r and the drupal log reports pages dont want to show this. If you need to debug with this you are best looking directly at the watchdog table or using drupal console
 
+
 TESTING
 -------
 
 elastic_search uses [Mockery](http://docs.mockery.io) for test mocking because of a bug in the phpunit version that drupal requires which prevents some classes from being mocked.
 All elastic_search features are tested using [Drupal Module Tester](https://github.com/ibrows/drupal_module_tester) and codeship.
 
-TODO
-----
-
-* Custom Analysers - Currently the inbuilt analysers are supported but custom analysers will not be rendered by the Cartographer class
 
 DEVELOPMENT
 -----------
 
+The dev folder contains a complete docker environment that can be used to develop this module.
 See the /docs folder for the full git book on developing and extending this module.
 
 We use Github and a gitflow pull request workflow.
@@ -73,30 +73,32 @@ Each pull request should have a related and cross-linked drupal.org issue.
 
 For the testing to run correctly the following branch naming patterns should be observed:
 
-    - Features should be implemented in a branch named feature/{my_feature_name}
-    - Issues should be implemented in a branch named issue/{my_issue_id}
+- Features should be implemented in a branch named feature/{my_feature_name}
+- Issues should be implemented in a branch named issue/{my_issue_id}
 
 PR's will not be accepted without passing tests!
 
 https://github.com/ibrows/elastic_search
+
 
 CONTRIBUTIONS
 -------------
 
 We welcome contributions in the following areas
 
-    * Comment Mapping
-    * Custom Analyzer rendering in maps
-    * Testing for forms
-    * Custom Field Mappers for 3rd party modules
+* Comment Mapping
+* Custom Analyzer rendering in maps
+* Testing for forms
+* Custom Field Mappers for 3rd party modules
 
 
 MAINTAINERS
 -----------
 
 Current Maintainers:
-    Alessio De Francesco [(aless_io)](https://www.drupal.org/u/aless_io)
-    Tom Whiston [(Tom.W)](https://www.drupal.org/u/tomw-0)
+
+* Alessio De Francesco [(aless_io)](https://www.drupal.org/u/aless_io)
+* Tom Whiston [(Tom.W)](https://www.drupal.org/u/tomw-0)
 
 This project has been sponsored by:
 

@@ -58,7 +58,3 @@ The structure is described below.
 ![alt text](./../images/Overview.png "Overview")
 
 Currently the only supported analyzers are the ones inbuilt in elastic search as custom analyzer generation is not yet supported in the Cartographer class.
-
-## Process
-
-TODO - Blackfire diagram of process execution

@@ -2,10 +2,13 @@
 
 source /opt/app-root/scripts/util/hostname.sh
 
+
 if [ "$BOOTSTRAP" != "false" ]; then
     source /opt/app-root/scripts/util/bootstrap.sh
     ../vendor/bin/drupal module:install config
     ../vendor/bin/drupal theme:install seven --set-default
+    mkdir -p ./libraries/ace/src-min-noconflict/
+    curl -o ./libraries/ace/src-min-noconflict/ace.js -D - -L -s https://github.com/ajaxorg/ace-builds/blob/master/src-min-noconflict/ace.js
 fi
 
 if [ "$DEFAULT_CONFIG" != "false" ]; then

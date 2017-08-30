@@ -2,6 +2,7 @@
 
 Within the elastic_search module most of the heavy lifting  is done by the FieldMapper plugins.
 It is the responsibility of these plugins to
+
     * Provide any options for the Fieldable Entity Map form
     * Tell the Cartographer what mapping to send to elastic
     * Tell the ElasticPayloadRenderer how to flatten your field data at document index time.
