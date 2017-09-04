@@ -1,5 +1,7 @@
 # Summary
 
+* [Module Readme](../README.md)
+* [Docs Readme](README.md)
 * [Roadmap](ROADMAP.md)
 
 ----
@@ -7,9 +9,11 @@
 ## User Guide
 
 * [Quickstart](user/README.md)
-* [Configuration](user/config/README.md)
-* [Mapping](user/mapping/README.md)
-    * [Supported Fields](user/mapping/SupportedFields.md)
+* [Server Settings](user/server.md)
+* [Fieldable Entity Maps](user/fem.md)
+    * [Supported Fields](user/supported_fields.md)
+* [Indices](user/indices.md)
+* [Document Indexing](user/document_indexing.md)
 
 ----
 

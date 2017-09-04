@@ -28,3 +28,5 @@ Needs a few things:
 ## Possible Future Features - No Version Specified
 
 * Handle comments mapping and indexing
+* Compare local and on server index mapping
+* Better Kibana integration, iframe dashboards etc...

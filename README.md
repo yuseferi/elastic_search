@@ -20,8 +20,8 @@ This means:
     * Easy to extend type mappings to your custom fields by implementing an event subscriber
     * Easy to add field data normalization via a plugin
 
-This module is only for mapping of content with elastic search. You will need additional modules to display result content, such as [Elastic Search View](https://github.com/ibrows/elastic_search_view).
-This module could also be integrated with [Elastic Search Helper](https://www.drupal.org/project/elasticsearch_helper) as it decouples the mapping and indexing of documents from their retrieval.
+This module is only for mapping and indexing of content with elastic search. You will need additional modules to display result content, such as [Elastic Search View](https://github.com/ibrows/elastic_search_view).
+This module could be integrated with [Elastic Search Helper](https://www.drupal.org/project/elasticsearch_helper) as it decouples the mapping and indexing of documents from their retrieval.
 
 
 REQUIREMENTS
@@ -30,6 +30,7 @@ REQUIREMENTS
 * PHP >=7.0
 * Elastic Search >= 5.0.0
 * Ace code editor. Add this to your libraries/ folder so that /libraries/ace/src-min-noconflict/ace.js is available
+* Cron
 
 
 INSTALLATION
@@ -43,6 +44,13 @@ CONFIGURATION
 -------------
 
 See the /docs folder for the full git book on configuring this module.
+
+
+Related Modules
+---------------
+
+[Elastic Search Views](http://drupal.org/project/elastic_search_views)
+Use elastic search to provide views results data, can be rendered from local db or display elastic json response directly for decoupled FE designs
 
 
 NOTES

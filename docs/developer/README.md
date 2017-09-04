@@ -1,5 +1,7 @@
 # Developers Guide
 
+If you have not yet read the Users Guide it is strongly suggested to read this first to understand the core concepts of the module.
+
 ## Local Development Environment
 
 If you have docker set up then development is very simple. (If you use OSX we would advise using [DM](https://github.com/twhiston/dm) to set up your local environment with faster NFS shares and XDebug config for docker and phpstorm)

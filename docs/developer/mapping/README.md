@@ -2,7 +2,6 @@
 
 The main additions that a developer may wish to extend the elastic_search module are around the mapping section. This largely involves implementing plugins, or events.
 
-
 ## Entities
 
 Custom Entities may need to implement an ElasticEnabledEntity plugin. This is mainly implemented as a way to map a parent 'type' to the child, so that forms can be shown in the correct places in the drupal interface without excessive routing code.
