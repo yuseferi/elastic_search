@@ -4,4 +4,4 @@
 - name: module_test
   tag: ^(master|develop|feature|issue) #Run all tests on master, develop and feature branches
   service: app
-  command: /opt/app-root/test.sh #only runs tests on our module
+  command: /opt/app-root/scripts/test.sh #only runs tests on our module
