@@ -8,7 +8,7 @@ services:
     image: pwcsexperiencecenter/drupal-module-tester:latest
     cached: true
     links:
-      - mariadb
+      - dmtdb
     ports:
       - "8000"
     environment:
@@ -16,7 +16,7 @@ services:
     volumes:
       - ./:/opt/app-root/test
 
-  mariadb:
+  dmtdb:
     image: mariadb:latest
     cached: true
     ports:
