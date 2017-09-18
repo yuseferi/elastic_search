@@ -15,6 +15,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\elastic_search\Entity\FieldableEntityMap;
 use Drupal\elastic_search\Exception\ElasticDocumentBuilderSkipException;
+use Drupal\elastic_search\Exception\IndexNotFoundException;
 use Drupal\elastic_search\Plugin\QueueWorker\ElasticEntityUpdate;
 use Drupal\elastic_search\ValueObject\QueueItem;
 use Elasticsearch\Client;
@@ -484,8 +485,13 @@ class ElasticDocumentManager implements ContainerInjectionInterface {
       /** @var \Drupal\elastic_search\Entity\FieldableEntityMapInterface $fem */
       $fem = $documentManager->entityTypeManager->getStorage('fieldable_entity_map')->load($femName);
 
-      $payload = $documentManager->getPayloadRenderer()
-                                 ->buildDeleteOrphanPayload($orphan->getUuid(), $orphan->getLanguage(), $fem);
+      try {
+        $payload = $documentManager->getPayloadRenderer()
+                                   ->buildDeleteOrphanPayload($orphan->getUuid(), $orphan->getLanguage(), $fem);
+      } catch (IndexNotFoundException $e) {
+        //Only catch IndexNotFound Exceptions as these cannot be resolved and should be removed from the queue to not back up deletion data
+        continue;
+      }
 
       $payloads['body'] = array_merge($payloads['body'], $payload['body']);
     }

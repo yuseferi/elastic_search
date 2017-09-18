@@ -37,6 +37,14 @@ class FieldMapperBaseTest extends UnitTestCase {
     $testValue = 'test_value';
     static::assertEquals($testValue, $base->normalizeFieldData('test_id', [['value' => $testValue]], []));
 
+    $testArray = [];
+    $values = ['val1', 'val2', 'val3'];
+    foreach ($values as $value) {
+      $testArray[] = ['value' => $value];
+    }
+    static::assertEquals($values, $base->normalizeFieldData('test_id', $testArray, ['nested' => '1']));
+    static::assertEquals($values[0], $base->normalizeFieldData('test_id', $testArray, ['nested' => '0']));
+
     //Testing getDslFromData is a bit more involved as we need to test some specific conversion functions it runs
     $dslData = [
       'should_be_bool'        => 0,
