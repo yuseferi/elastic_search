@@ -58,3 +58,9 @@ elastic_search.fieldable_entity.fields:
               type: string
             field_data:
               type: elastic_search.fieldable_entity.fields
+
+elastic_search.fieldableentitymapgeneration:
+  type: config_object
+  mapping:
+    elastic_search:
+      type: string
