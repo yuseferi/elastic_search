@@ -45,6 +45,7 @@ CONFIGURATION
 -------------
 
 See the /docs folder for the full git book on configuring this module.
+Or see https://ibrows.github.io/elastic_search/
 
 
 Related Modules
