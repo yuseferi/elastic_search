@@ -267,9 +267,13 @@ class ElasticPayloadRenderer implements ElasticPayloadRendererInterface, Contain
             if (array_key_exists('langcode', $fieldData)) {
               $fieldMappingData[$id]['langcode'] = $fieldData['langcode'][0]['value'];
             }
-            $flattened = $fieldMapper->normalizeFieldData($id,
-                                                          $data,
-                                                          $fieldMappingData[$id]);
+            if ($fieldMappingData[$id]['map'][0]['type'] !== 'none') {
+              $flattened = $fieldMapper->normalizeFieldData($id,
+                                                            $data,
+                                                            $fieldMappingData[$id]);
+            } else {
+              throw new FieldMapperFlattenSkipException;
+            }
           } catch (ElasticDocumentManagerRecursionException $e) {
             /** @var \Drupal\elastic_search\Plugin\FieldMapperInterface $fieldMapper */
             $fieldMapper = $this->fieldMapperManager->createInstance('simple_reference');
