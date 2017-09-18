@@ -20,8 +20,9 @@ This means:
     * Easy to extend type mappings to your custom fields by implementing an event subscriber
     * Easy to add field data normalization via a plugin
 
-This module is only for mapping and indexing of content with elastic search. You will need additional modules to display result content, such as [Elastic Search View](https://github.com/ibrows/elastic_search_view).
-This module could be integrated with [Elastic Search Helper](https://www.drupal.org/project/elasticsearch_helper) as it decouples the mapping and indexing of documents from their retrieval.
+This module is only for mapping and indexing of content with elastic search. You will need additional modules to display result content, such as the soon to be published
+[Elastic Search View](https://github.com/ibrows/elastic_search_view) .
+This module could also be integrated with [Elastic Search Helper](https://www.drupal.org/project/elasticsearch_helper) as it decouples the mapping and indexing of documents from their retrieval.
 
 
 REQUIREMENTS
@@ -98,6 +99,8 @@ We welcome contributions in the following areas
 * Custom Analyzer rendering in maps
 * Testing for forms
 * Custom Field Mappers for 3rd party modules
+
+Please do not submit code style or readme punctuation updates that add no value to the plugin.
 
 
 MAINTAINERS
