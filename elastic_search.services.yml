@@ -14,6 +14,10 @@ services:
       class: Drupal\elastic_search\Plugin\ElasticEnabledEntityManager
       parent: default_plugin_manager
 
+  plugin.manager.elastic_abstract_field:
+      class: \Drupal\elastic_search\Plugin\ElasticAbstractFieldManager
+      parent: default_plugin_manager
+
 ######################################
 # ELASTIC SEARCH PHP
 ######################################
@@ -43,6 +47,10 @@ services:
     class: Drupal\elastic_search\Mapping\ElasticMappingDslGenerator
     factory: ['Drupal\elastic_search\Mapping\ElasticMappingDslGenerator', create]
     arguments: ['@service_container']
+
+  elastic_search.elastic_abstract_field.factory:
+     class: \Drupal\elastic_search\Plugin\ElasticAbstractFieldFactory
+     arguments: ['@plugin.manager.elastic_abstract_field']
 
 ######################################
 # INDICES

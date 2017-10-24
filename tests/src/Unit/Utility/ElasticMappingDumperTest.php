@@ -101,9 +101,9 @@ class ElasticMappingDumperTest extends UnitTestCase {
    * Tests exporting variables.
    *
    * @param string $expected
-   *    The expected exported variable.
+   *   The expected exported variable.
    * @param mixed  $variable
-   *    The variable to be exported.
+   *   The variable to be exported.
    *
    * @dataProvider providerTestExport
    */
