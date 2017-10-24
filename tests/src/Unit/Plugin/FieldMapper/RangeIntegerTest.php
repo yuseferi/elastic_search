@@ -60,6 +60,9 @@ class RangeIntegerTest extends UnitTestCase {
     $this->assertArrayEquals($expected, $returnedData);
   }
 
+  /**
+   * Test the support types.
+   */
   public function testSupportedTypes() {
     $entityTypeManagerInterface = \Mockery::mock(EntityTypeManagerInterface::class);
     $elasticDocumentManager = \Mockery::mock(ElasticDocumentManager::class);
