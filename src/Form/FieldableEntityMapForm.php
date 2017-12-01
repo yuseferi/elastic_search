@@ -11,6 +11,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\elastic_search\Entity\FieldableEntityMap;
 use Drupal\elastic_search\Entity\FieldableEntityMapInterface;
+use Drupal\elastic_search\Plugin\ElasticAbstractField\ElasticAbstractFieldInterface;
+use Drupal\elastic_search\Plugin\ElasticAbstractFieldFactory;
 use Drupal\elastic_search\Plugin\EntityTypeDefinitionsInterface;
 use Drupal\elastic_search\Plugin\EntityTypeDefinitionsManager;
 use Drupal\elastic_search\Utility\ArrayKeyToCamelCaseHelper;
@@ -61,6 +63,11 @@ class FieldableEntityMapForm extends EntityForm {
   protected $user;
 
   /**
+   * @var \Drupal\elastic_search\ElasticAbstractFieldFactory
+   */
+  protected $elasticAbstractFieldFactory;
+
+  /**
    * FieldableEntityMapForm constructor.
    *
    * @param \Drupal\elastic_search\Utility\TypeMapper                  $typeMapper
@@ -68,17 +75,20 @@ class FieldableEntityMapForm extends EntityForm {
    * @param \Drupal\elastic_search\Plugin\EntityTypeDefinitionsManager $entityTypeDefinitionsManager
    * @param \Psr\Log\LoggerInterface                                   $logger
    * @param \Drupal\Core\Session\AccountProxyInterface                 $user
+   * @param \Drupal\elastic_search\Plugin\ElasticAbstractFieldFactory         $abstractFieldFactory
    */
   public function __construct(TypeMapper $typeMapper,
                               ConfigFactoryInterface $configFactory,
                               EntityTypeDefinitionsManager $entityTypeDefinitionsManager,
                               LoggerInterface $logger,
-                              AccountProxyInterface $user) {
+                              AccountProxyInterface $user,
+                              ElasticAbstractFieldFactory $abstractFieldFactory) {
     $this->typeMapper = $typeMapper;
     $this->configFactory = $configFactory;
     $this->entityTypeDefinitionsManager = $entityTypeDefinitionsManager;
     $this->logger = $logger;
     $this->user = $user;
+    $this->elasticAbstractFieldFactory = $abstractFieldFactory;
   }
 
   /**
@@ -94,7 +104,8 @@ class FieldableEntityMapForm extends EntityForm {
                       $container->get('plugin.manager.elastic_entity_type_definition_plugin'),
                       $container->get('logger.factory')
                                 ->get('elastic.mapping.entity_form'),
-                      $container->get('current_user'));
+                      $container->get('current_user'),
+                      $container->get('elastic_search.elastic_abstract_field.factory'));
   }
 
   /**
@@ -422,13 +433,16 @@ class FieldableEntityMapForm extends EntityForm {
       }
     }
 
+    // Determining if the field type is a nested field.
+    $isNested = $this->fieldTypeIsNested($bundle_field->getType());
+
     if ($bundle_field instanceof BaseFieldDefinition) {
       /** BaseFieldDefinition $bundle_field */
-      $cardinality = ($bundle_field->getCardinality() !== 1);
+      $cardinality = ($bundle_field->getCardinality() !== 1) || $isNested;
     } else {
       try {
         $sd = $bundle_field->getFieldStorageDefinition();
-        $cardinality = ($sd->getCardinality() !== 1);
+        $cardinality = ($sd->getCardinality() !== 1) || $isNested;
       } catch (\Exception $e) {
         $this->logger->warning("could not get cardinality to determine nesting setting for {$bundle_field->getName()}");
         $cardinality = FALSE;
@@ -436,6 +450,23 @@ class FieldableEntityMapForm extends EntityForm {
     }
 
     return ($stateNested && $cardinality) || $cardinality;
+  }
+
+  /**
+   * Finds a ElasticAbstractField plugin for the given field type to determine
+   * if the field type is a nested field.
+   *
+   * @param string $fieldType
+   *
+   * @return bool
+   */
+  protected function fieldTypeIsNested(string $fieldType): bool {
+    if ($plugin = $this->elasticAbstractFieldFactory->getAbstractFieldPlugin($fieldType)) {
+      if ($plugin instanceof ElasticAbstractFieldInterface) {
+        return $plugin->isNested();
+      }
+    }
+    return FALSE;
   }
 
   /**

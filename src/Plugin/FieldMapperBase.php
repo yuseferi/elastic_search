@@ -132,12 +132,14 @@ abstract class FieldMapperBase extends PluginBase implements FieldMapperInterfac
   public function normalizeFieldData(string $id, array $data, array $fieldMappingData) {
     if (!array_key_exists('nested', $fieldMappingData) || (int) $fieldMappingData['nested'] !== 1) {
       //If not nested just return the value
-      return $data[0]['value'] ?? NULL;
+      return (isset($data[0]) && array_key_exists('value', $data[0])) ? $data[0]['value'] : NULL;
     }
     //If nested then we need to pass back an array of values
     $out = [];
     foreach ($data as $datum) {
-      $out[] = $datum['value'];
+      if (isset($datum['value'])) {
+        $out[] = $datum['value'];
+      }
     }
     return !empty($out) ? $out : NULL;
   }
